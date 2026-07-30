@@ -1,0 +1,1905 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <title>SwiftDuel – Dashboard</title>
+
+  <!-- Fonts & Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <!-- Firebase SDK -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Inter', sans-serif; -webkit-tap-highlight-color: transparent; }
+
+    body {
+      background-color: #f0f4ff;
+      color: #1a2a3a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-bottom: 90px;
+      transition: background-color 0.3s ease, color 0.2s ease;
+    }
+
+    body.light-mode {
+      background-color: #f0f4ff !important;
+      color: #1a2a3a;
+    }
+    body.light-mode .app-container { background: #ffffff; }
+    body.light-mode .top-bar { background: #ffffff; border-bottom-color: #e0e8f4; }
+    body.light-mode .top-bar .brand span { color: #1a3a6a; }
+    body.light-mode .wallet-hub-card { background: linear-gradient(135deg, #eef4ff, #dce8f8); border-color: #d0dcec; color: #1a2a3a; }
+    body.light-mode .wallet-hub-card .balance-amount { color: #1a2a3a; }
+    body.light-mode .wallet-hub-card .sub-balance-val { color: #10b981; }
+    body.light-mode .wallet-hub-card .sub-balance-val.vip { color: #1a6bff; }
+    body.light-mode .wallet-hub-card .balance-label { color: #4a6a8a; }
+    body.light-mode .wallet-hub-card .hub-actions-grid .action-tile { background: #ffffff; border-color: #dce4f0; color: #1a2a3a; }
+    body.light-mode .wallet-hub-card .hub-actions-grid .action-tile i { color: #1a6bff; }
+    body.light-mode .stat-mini-card { background: #f8faff; border-color: #e0e8f4; }
+    body.light-mode .stat-mini-card strong { color: #1a2a3a; }
+    body.light-mode .stat-mini-card span { color: #6a8a9a; }
+    body.light-mode .stat-mini-card i { color: #1a6bff; }
+    body.light-mode .package-card { background: #f8faff; border-color: #e0e8f4; }
+    body.light-mode .package-card .package-title-text { color: #1a2a3a; }
+    body.light-mode .package-card .package-price { color: #1a6bff; }
+    body.light-mode .package-card .detail-item { color: #4a6a8a; }
+    body.light-mode .bottom-nav { background: rgba(255,255,255,0.95); border-top-color: #e0e8f4; }
+    body.light-mode .nav-tab { color: #8a94b0; }
+    body.light-mode .nav-tab.active-tab { color: #1a6bff; }
+    body.light-mode .support-channel-row { background: #f8faff; border-color: #e0e8f4; color: #1a2a3a; }
+    body.light-mode .task-container { background: #f8faff; border-color: #e0e8f4; }
+    body.light-mode .task-container .task-status { color: #6a8a9a; }
+    body.light-mode .link-copy-card { background: #f8faff; border-color: #e0e8f4; }
+    body.light-mode .link-copy-card .link-field { background: #ffffff; border-color: #dce4f0; }
+    body.light-mode .link-copy-card .link-field span { color: #4a6a8a; }
+    body.light-mode .profile-hero { background: #f8faff; border-color: #e0e8f4; }
+    body.light-mode .profile-hero h3 { color: #1a2a3a; }
+    body.light-mode .profile-hero .profile-rank { color: #1a6bff; }
+    body.light-mode .profile-management-group { background: #f8faff; border-color: #e0e8f4; }
+    body.light-mode .profile-management-group .input-row label { color: #4a6a8a; }
+    body.light-mode .profile-management-group .input-row input,
+    body.light-mode .profile-management-group .input-row select { background: #ffffff; border-color: #dce4f0; color: #1a2a3a; }
+    body.light-mode .toast-notification { background: #1a2a3a; color: #fff; }
+    body.light-mode .portal-modal-card { background: #ffffff; }
+    body.light-mode .portal-modal-card .support-channel-row { background: #f8faff; border-color: #e0e8f4; color: #1a2a3a; }
+    body.light-mode .maintenance-banner { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+    body.light-mode .maintenance-banner i { color: #f59e0b; }
+
+    body.dark-mode {
+      background-color: #0a1a2a !important;
+      color: #eef4ff;
+    }
+    body.dark-mode .app-container { background: #122a3a; }
+    body.dark-mode .top-bar { background: #122a3a; border-bottom-color: #2a4a5a; }
+    body.dark-mode .top-bar .brand span { color: #ffffff; }
+    body.dark-mode .top-bar .brand span .red { color: #ff6b6b; }
+    body.dark-mode .logout-btn { background: rgba(229,62,62,0.15); border-color: rgba(229,62,62,0.4); color: #ff6b6b; }
+    body.dark-mode .logout-btn:hover { background: rgba(229,62,62,0.25); }
+    body.dark-mode .wallet-hub-card { background: linear-gradient(135deg, #1a2a3a, #0a1a2a); border-color: #2a4a5a; color: #eef4ff; }
+    body.dark-mode .wallet-hub-card .balance-amount { color: #ffffff; }
+    body.dark-mode .wallet-hub-card .sub-balance-val { color: #10b981; }
+    body.dark-mode .wallet-hub-card .sub-balance-val.vip { color: #1a6bff; }
+    body.dark-mode .wallet-hub-card .balance-label { color: #8aaabc; }
+    body.dark-mode .wallet-hub-card .hub-actions-grid .action-tile { background: rgba(255,255,255,0.05); border-color: #2a4a5a; color: #eef4ff; }
+    body.dark-mode .wallet-hub-card .hub-actions-grid .action-tile i { color: #1a6bff; }
+    body.dark-mode .stat-mini-card { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .stat-mini-card strong { color: #eef4ff; }
+    body.dark-mode .stat-mini-card span { color: #8aaabc; }
+    body.dark-mode .stat-mini-card i { color: #1a6bff; }
+    body.dark-mode .package-card { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .package-card .package-title-text { color: #eef4ff; }
+    body.dark-mode .package-card .package-price { color: #1a6bff; }
+    body.dark-mode .package-card .detail-item { color: #8aaabc; }
+    body.dark-mode .package-card .detail-item i { color: #1a6bff; }
+    body.dark-mode .btn-buy-package { background: linear-gradient(135deg, #1a6bff, #1555cc); color: #fff; }
+    body.dark-mode .bottom-nav { background: rgba(18,42,58,0.95); border-top-color: #2a4a5a; }
+    body.dark-mode .nav-tab { color: #6a8a9a; }
+    body.dark-mode .nav-tab.active-tab { color: #1a6bff; }
+    body.dark-mode .nav-tab:hover { color: #1a6bff; }
+    body.dark-mode .section-headline { color: #eef4ff; }
+    body.dark-mode .section-subline { color: #8aaabc; }
+    body.dark-mode .task-container { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .task-container .task-status { color: #8aaabc; }
+    body.dark-mode .task-container .claim-btn { background: linear-gradient(135deg, #1a6bff, #1555cc); color: #fff; }
+    body.dark-mode .link-copy-card { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .link-copy-card .link-field { background: #0a1a2a; border-color: #2a4a5a; }
+    body.dark-mode .link-copy-card .link-field span { color: #eef4ff; }
+    body.dark-mode .btn-copy { color: #1a6bff; border-color: #1a6bff; }
+    body.dark-mode .profile-hero { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .profile-hero h3 { color: #eef4ff; }
+    body.dark-mode .profile-hero .profile-rank { color: #1a6bff; }
+    body.dark-mode .profile-management-group { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .profile-management-group .input-row label { color: #8aaabc; }
+    body.dark-mode .profile-management-group .input-row input,
+    body.dark-mode .profile-management-group .input-row select { background: #0a1a2a; border-color: #2a4a5a; color: #eef4ff; }
+    body.dark-mode .profile-management-group .input-row select option { background: #122a3a; }
+    body.dark-mode .shrunk-bank-display { background: #0a1a2a; border-color: #1a6bff; }
+    body.dark-mode .shrunk-bank-display p { color: #eef4ff; }
+    body.dark-mode .shrunk-bank-display .label { color: #8aaabc; }
+    body.dark-mode .shrunk-bank-display .value { color: #eef4ff; }
+    body.dark-mode .support-channel-row { background: #1a2a3a; border-color: #2a4a5a; color: #eef4ff; }
+    body.dark-mode .support-channel-row:hover { border-color: #1a6bff; }
+    body.dark-mode .portal-modal-card { background: #122a3a; color: #eef4ff; border-color: #2a4a5a; }
+    body.dark-mode .portal-modal-card .support-channel-row { background: #1a2a3a; border-color: #2a4a5a; color: #eef4ff; }
+    body.dark-mode .portal-modal-card .support-channel-row:hover { border-color: #1a6bff; }
+    body.dark-mode .toast-notification { background: #1a2a3a; border-left-color: #1a6bff; }
+    body.dark-mode .toast-notification .toast-msg { color: #eef4ff; }
+    body.dark-mode .dark-toggle { background: rgba(26,107,255,0.15); border-color: rgba(26,107,255,0.3); color: #1a6bff; }
+    body.dark-mode .dark-toggle:hover { background: rgba(26,107,255,0.25); }
+    body.dark-mode .maintenance-banner { background: #451a1a; border-color: #ef4444; color: #fca5a5; }
+    body.dark-mode .maintenance-banner i { color: #ef4444; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #dce4f0; }
+    ::-webkit-scrollbar-thumb { background: #1a6bff; border-radius: 4px; }
+    body.dark-mode ::-webkit-scrollbar-track { background: #1a2a3a; }
+    body.dark-mode ::-webkit-scrollbar-thumb { background: #1a6bff; }
+
+    .app-container {
+      width: 100%; max-width: 480px; min-height: 100vh;
+      background: #ffffff;
+      display: flex; flex-direction: column;
+      position: relative; box-shadow: 0 0 30px rgba(0,40,80,0.08);
+      transition: background 0.3s ease;
+    }
+
+    @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeSlideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+
+    .top-bar {
+      width: 100%; padding: 14px 20px;
+      display: flex; justify-content: space-between; align-items: center;
+      border-bottom: 1px solid #e0e8f4;
+      position: sticky; top: 0; z-index: 100;
+      background: #ffffff;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .top-bar .brand { display: flex; align-items: center; gap: 10px; text-decoration: none; }
+    .top-bar .brand i { color: #1a6bff; font-size: 1.4rem; animation: float 3s ease-in-out infinite; }
+    .top-bar .brand span { font-size: 1.1rem; font-weight: 800; text-transform: uppercase; color: #1a3a6a; }
+    .top-bar .brand span .red { color: #e53e3e; }
+    .top-bar .actions { display: flex; align-items: center; gap: 14px; }
+
+    .dark-toggle {
+      width: 36px; height: 36px; border-radius: 50%;
+      background: rgba(26,107,255,0.08);
+      border: 1px solid rgba(26,107,255,0.2);
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #1a6bff; transition: all 0.3s; font-size: 0.9rem;
+    }
+    .dark-toggle:hover { background: rgba(26,107,255,0.15); transform: scale(1.05); }
+
+    .logout-btn {
+      background: rgba(229,62,62,0.1);
+      border: 1px solid rgba(229,62,62,0.3);
+      border-radius: 30px; padding: 6px 16px;
+      font-size: 0.7rem; font-weight: 700; color: #e53e3e;
+      cursor: pointer; transition: all 0.2s;
+      display: flex; align-items: center; gap: 6px;
+    }
+    .logout-btn:hover { background: rgba(229,62,62,0.2); transform: scale(1.02); }
+
+    .refresh-btn {
+      background: rgba(26,107,255,0.08);
+      border: 1px solid rgba(26,107,255,0.2);
+      border-radius: 50%;
+      width: 32px;
+      height: 32px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; color: #1a6bff;
+      transition: all 0.3s;
+      font-size: 0.8rem;
+    }
+    .refresh-btn:hover { background: rgba(26,107,255,0.15); transform: scale(1.05); }
+    .refresh-btn .fa-spin { animation: spin 0.8s linear infinite; }
+
+    .app-workspace { flex-grow: 1; padding: 20px; }
+    .app-view { display: none; animation: fadeSlideUp 0.3s ease; }
+    .app-view.active-view { display: block; }
+
+    /* Maintenance Banner */
+    .maintenance-banner {
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid #f59e0b;
+      background: #fef3c7;
+      color: #92400e;
+      margin-bottom: 16px;
+      display: none;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .maintenance-banner i { font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
+    .maintenance-banner strong { font-weight: 800; }
+    .maintenance-banner.show { display: flex; }
+
+    .wallet-hub-card {
+      border-radius: 20px; padding: 24px; margin-bottom: 20px;
+      border: 1px solid #d0dcec;
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .wallet-hub-card .balance-block { display: flex; justify-content: space-between; align-items: center; }
+    .wallet-hub-card .balance-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.5px; }
+    .wallet-hub-card .balance-amount { font-size: 2rem; font-weight: 800; }
+    .wallet-hub-card .balance-sub-row {
+      display: flex; justify-content: space-between;
+      border-top: 1px solid rgba(0,0,0,0.05); padding-top: 14px; margin-top: 14px;
+    }
+    body.dark-mode .wallet-hub-card .balance-sub-row { border-top-color: rgba(255,255,255,0.05); }
+    .wallet-hub-card .sub-balance-title { font-size: 0.65rem; text-transform: uppercase; }
+    .wallet-hub-card .sub-balance-val { font-size: 0.95rem; font-weight: 700; }
+    .wallet-hub-card .sub-balance-val.vip { color: #1a6bff; }
+
+    .hub-actions-grid {
+      display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px;
+      border-top: 1px solid rgba(0,0,0,0.05); padding-top: 16px; margin-top: 16px;
+    }
+    body.dark-mode .hub-actions-grid { border-top-color: rgba(255,255,255,0.05); }
+    .hub-actions-grid .action-tile {
+      border-radius: 12px; padding: 12px; text-align: center;
+      text-decoration: none; font-weight: 600; font-size: 0.75rem;
+      transition: all 0.3s; cursor: pointer; border: 1px solid #dce4f0; background: #ffffff;
+      color: #1a2a3a;
+    }
+    .hub-actions-grid .action-tile i { font-size: 1.2rem; display: block; margin-bottom: 4px; color: #1a6bff; }
+    .hub-actions-grid .action-tile:hover { background: rgba(26,107,255,0.08); border-color: #1a6bff; transform: translateY(-2px); }
+
+    .quick-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 20px; }
+    .stat-mini-card { border-radius: 14px; padding: 12px; text-align: center; border: 1px solid #e0e8f4; transition: all 0.3s; }
+    .stat-mini-card i { font-size: 1.2rem; margin-bottom: 4px; display: block; }
+    .stat-mini-card span { font-size: 0.6rem; text-transform: uppercase; display: block; }
+    .stat-mini-card strong { font-size: 0.9rem; display: block; margin-top: 2px; }
+
+    .section-headline { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; display: flex; align-items: center; gap: 8px; }
+    .section-headline i { color: #1a6bff; }
+    .section-subline { font-size: 0.75rem; margin-bottom: 16px; }
+
+    .package-card { border-radius: 16px; padding: 18px; margin-bottom: 14px; border: 1px solid #e0e8f4; transition: all 0.3s; position: relative; }
+    .package-card:hover { border-color: #1a6bff; transform: translateY(-2px); }
+    .package-card .package-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,0,0,0.05); padding-bottom: 10px; margin-bottom: 10px; }
+    body.dark-mode .package-card .package-header { border-bottom-color: rgba(255,255,255,0.05); }
+    .package-card .package-title-text { font-weight: 700; font-size: 0.95rem; }
+    .package-card .package-title-text i { color: #1a6bff; margin-right: 4px; }
+    .package-card .package-price { font-weight: 800; font-size: 1rem; }
+    .package-card .package-details { display: flex; flex-direction: column; gap: 4px; margin-bottom: 12px; }
+    .package-card .detail-item { font-size: 0.75rem; display: flex; align-items: center; gap: 6px; }
+    .package-card .detail-item i { width: 16px; }
+
+    .btn-buy-package { width: 100%; padding: 10px; border: none; border-radius: 10px; font-weight: 700; cursor: pointer; transition: all 0.3s; font-size: 0.85rem; background: linear-gradient(135deg, #1a6bff, #1555cc); color: #fff; }
+    .btn-buy-package:hover { transform: scale(1.02); box-shadow: 0 4px 14px rgba(26,107,255,0.3); }
+    .btn-buy-package:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .bottom-nav {
+      position: fixed; bottom: 0; width: 100%; max-width: 480px; height: 70px;
+      backdrop-filter: blur(10px); display: grid; grid-template-columns: repeat(4, 1fr);
+      align-items: center; z-index: 9999;
+      background: rgba(255,255,255,0.95); border-top: 1px solid #e0e8f4;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .nav-tab {
+      display: flex; flex-direction: column; align-items: center; justify-content: center;
+      cursor: pointer; height: 100%; gap: 2px; text-decoration: none; transition: all 0.3s;
+    }
+    .nav-tab i { font-size: 1.2rem; }
+    .nav-tab .nav-label { font-size: 0.55rem; font-weight: 700; text-transform: uppercase; }
+    .nav-tab.active-tab { color: #1a6bff; }
+    .nav-tab:hover { color: #1a6bff; transform: translateY(-2px); }
+
+    .floating-action-panel {
+      position: fixed; bottom: 85px; right: 16px;
+      display: flex; flex-direction: column; gap: 10px; z-index: 10000;
+    }
+    .action-float-btn {
+      width: 44px; height: 44px; border-radius: 50%;
+      background: #1a6bff; color: #fff; display: flex; align-items: center; justify-content: center;
+      font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 14px rgba(0,0,0,0.15);
+      border: 2px solid #fff; transition: transform 0.2s;
+      position: relative;
+    }
+    body.dark-mode .action-float-btn { border-color: #0a1a2a; }
+    .action-float-btn:active { transform: scale(0.9); }
+    .action-float-btn .float-btn-label {
+      position: absolute; right: 52px;
+      background: #1a2a3a; color: #fff; font-size: 0.6rem;
+      padding: 4px 8px; border-radius: 4px; white-space: nowrap;
+      opacity: 0; pointer-events: none; transition: opacity 0.2s;
+    }
+    body.light-mode .action-float-btn .float-btn-label { background: #dce4f0; color: #1a2a3a; }
+    .action-float-btn:hover .float-btn-label { opacity: 1; }
+
+    .task-container { border-radius: 20px; padding: 24px; text-align: center; border: 1px solid #e0e8f4; transition: background 0.3s, border-color 0.3s; }
+    .task-container .task-status { font-size: 0.8rem; }
+    .claim-btn { padding: 12px 40px; border: none; border-radius: 60px; font-weight: 700; font-size: 1rem; cursor: pointer; background: linear-gradient(135deg, #1a6bff, #1555cc); color: #fff; transition: all 0.3s; display: inline-flex; align-items: center; gap: 8px; }
+    .claim-btn:hover:not(:disabled) { transform: scale(1.02); box-shadow: 0 4px 14px rgba(26,107,255,0.3); }
+    .claim-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+
+    .link-copy-card { border-radius: 16px; padding: 16px; border: 1px solid #e0e8f4; margin-bottom: 16px; transition: background 0.3s, border-color 0.3s; }
+    .link-copy-card .link-field { display: flex; align-items: center; padding: 8px 12px; border-radius: 10px; border: 1px solid #dce4f0; margin-top: 6px; gap: 8px; transition: 0.2s; }
+    .link-copy-card .link-field span { flex: 1; font-size: 0.7rem; word-break: break-all; }
+    .btn-copy { background: transparent; border: 1px solid #1a6bff; color: #1a6bff; padding: 4px 12px; border-radius: 6px; font-weight: 700; font-size: 0.7rem; cursor: pointer; transition: 0.2s; }
+    .btn-copy:hover { background: rgba(26,107,255,0.08); }
+
+    .profile-hero { border-radius: 20px; padding: 24px; text-align: center; border: 1px solid #e0e8f4; margin-bottom: 16px; transition: background 0.3s, border-color 0.3s; }
+    .profile-hero .avatar-large { width: 70px; height: 70px; border-radius: 50%; background: #1a6bff; color: #fff; display: flex; align-items: center; justify-content: center; font-size: 2rem; margin: 0 auto 10px; text-transform: uppercase; }
+    .profile-hero .profile-rank { font-weight: 700; margin-top: 6px; }
+
+    .profile-management-group { border-radius: 16px; padding: 18px; border: 1px solid #e0e8f4; margin-bottom: 16px; transition: background 0.3s, border-color 0.3s; }
+    .input-row { margin-bottom: 12px; }
+    .input-row label { font-size: 0.65rem; text-transform: uppercase; font-weight: 700; display: block; margin-bottom: 4px; }
+    .input-row input, .input-row select { width: 100%; padding: 8px; border-radius: 10px; border: 1px solid #dce4f0; font-size: 0.9rem; transition: 0.2s; }
+    .input-row input:focus, .input-row select:focus { border-color: #1a6bff; outline: none; }
+    .shrunk-bank-display { margin-top: 12px; padding: 12px; border-radius: 10px; border: 1px solid #1a6bff; background: #eef4ff; display: none; }
+    .shrunk-bank-display p { font-size: 0.8rem; margin: 4px 0; }
+    .shrunk-bank-display .label { color: #6a8a9a; font-weight: 600; }
+    .shrunk-bank-display .value { font-weight: 700; }
+
+    .portal-modal-overlay {
+      position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+      background: rgba(0,0,0,0.5); backdrop-filter: blur(4px);
+      z-index: 20000; display: none; align-items: center; justify-content: center; padding: 20px;
+    }
+    .portal-modal-overlay.active { display: flex; }
+    .portal-modal-card {
+      border-radius: 24px; padding: 30px 24px; max-width: 380px; width: 100%;
+      text-align: center; position: relative; box-shadow: 0 20px 40px rgba(0,0,0,0.2);
+      background: #ffffff; transition: background 0.3s, color 0.3s, border-color 0.3s;
+    }
+    .portal-modal-close { position: absolute; top: 12px; right: 16px; font-size: 1.4rem; cursor: pointer; color: #8a94b0; transition: 0.2s; }
+    .portal-modal-close:hover { color: #e53e3e; }
+    .support-channel-row {
+      display: flex; align-items: center; justify-content: space-between;
+      border-radius: 10px; padding: 12px 14px; margin-top: 10px;
+      text-decoration: none; font-weight: 600; font-size: 0.8rem;
+      transition: all 0.2s; border: 1px solid #e0e8f4;
+    }
+    .support-channel-row:hover { border-color: #1a6bff; transform: translateX(3px); }
+
+    .toast-notification {
+      position: fixed; top: 25px; left: 50%; transform: translateX(-50%) translateY(-120px);
+      width: calc(100% - 32px); max-width: 400px; background: #1a2a3a;
+      border-left: 4px solid #1a6bff; padding: 15px; border-radius: 10px;
+      transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+      z-index: 9999; box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      display: flex; align-items: center; gap: 12px;
+    }
+    .toast-notification.show { transform: translateX(-50%) translateY(0); }
+    .toast-notification i { font-size: 1.2rem; }
+    .toast-notification .toast-msg { font-size: 0.85rem; font-weight: 600; flex: 1; }
+
+    .status-indicator {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.6rem;
+      color: #6a8a9a;
+      padding: 2px 0;
+      margin-left: auto;
+    }
+    .status-indicator .dot {
+      width: 6px; height: 6px; border-radius: 50%;
+      background: #10b981;
+      display: inline-block;
+      transition: background 0.3s;
+    }
+    .status-indicator .dot.syncing {
+      background: #fbbf24;
+      animation: pulse 0.8s infinite;
+    }
+    .status-indicator .dot.offline {
+      background: #ef4444;
+    }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.4; } }
+
+    .last-updated {
+      font-size: 0.5rem;
+      color: #8a9aaa;
+      margin-left: 4px;
+    }
+
+    .claim-ref-btn {
+      background: #10b981;
+      color: #fff;
+      border: none;
+      border-radius: 20px;
+      padding: 2px 14px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: 0.3s;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .claim-ref-btn:hover { background: #059669; transform: scale(1.02); }
+    .claim-ref-btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+    .claim-ref-btn.claimed { background: #6b7280; cursor: default; }
+    .claim-ref-btn.claimed:hover { background: #6b7280; transform: none; }
+
+    .spinner-small {
+      width: 16px;
+      height: 16px;
+      border: 2px solid rgba(255,255,255,0.3);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    @media (max-width: 420px) {
+      .wallet-hub-card .balance-amount { font-size: 1.6rem; }
+      .hub-actions-grid { gap: 8px; }
+      .hub-actions-grid .action-tile { padding: 8px; font-size: 0.7rem; }
+      .package-card { padding: 14px; }
+      .bottom-nav { height: 60px; }
+      .nav-tab i { font-size: 1rem; }
+      .nav-tab .nav-label { font-size: 0.5rem; }
+      .app-workspace { padding: 14px; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- ===== TOAST ===== -->
+  <div class="toast-notification" id="customToast">
+    <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+    <div class="toast-msg" id="toastMsg">Ready</div>
+  </div>
+
+  <!-- ===== APP CONTAINER ===== -->
+  <div class="app-container">
+
+    <!-- ---- HEADER ---- -->
+    <header class="top-bar">
+      <a href="#" class="brand">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Swift<span class="red">Duel</span></span>
+      </a>
+      <div class="actions">
+        <div class="dark-toggle" id="darkModeToggle" title="Toggle dark/light mode">
+          <i class="fa-solid fa-moon"></i>
+        </div>
+        <button class="refresh-btn" id="refreshBtn" title="Refresh data">
+          <i class="fa-solid fa-rotate" id="refreshIcon"></i>
+        </button>
+        <button class="logout-btn" id="logoutBtn"><i class="fa-solid fa-sign-out-alt"></i> Logout</button>
+      </div>
+    </header>
+
+    <!-- ---- WORKSPACE ---- -->
+    <div class="app-workspace">
+
+      <!-- Maintenance Banner -->
+      <div class="maintenance-banner" id="maintenanceBanner">
+        <i class="fa-solid fa-triangle-exclamation"></i>
+        <div>
+          <strong>⚠️ Platform Under Maintenance</strong><br />
+          Withdrawals, claims, and check‑ins are temporarily disabled. Please check back later.
+        </div>
+      </div>
+
+      <!-- ===== VIEW 1: HOME ===== -->
+      <div id="viewHome" class="app-view active-view">
+        <div class="wallet-hub-card">
+          <div class="balance-block">
+            <div class="balance-label"><i class="fa-solid fa-wallet"></i> Available Balance</div>
+            <div class="balance-amount" id="displayUserBalance">₦0.00</div>
+          </div>
+          <div class="balance-sub-row">
+            <div>
+              <div class="sub-balance-title">Total Earned</div>
+              <div class="sub-balance-val" id="displayTotalEarnings">₦0.00</div>
+            </div>
+            <div>
+              <div class="sub-balance-title">VIP Level</div>
+              <div class="sub-balance-val vip" id="displayActiveRank">STANDARD</div>
+            </div>
+          </div>
+          <div class="hub-actions-grid">
+            <a href="deposit.html" class="action-tile" id="depositTile"><i class="fa-solid fa-circle-plus"></i> Deposit</a>
+            <a href="withdraw.html" class="action-tile" id="withdrawTile"><i class="fa-solid fa-money-bill-transfer"></i> Withdraw</a>
+          </div>
+        </div>
+
+        <div class="quick-stats">
+          <div class="stat-mini-card"><i class="fa-solid fa-arrow-trend-up"></i><span>Daily ROI</span><strong id="dailyRoiDisplay">0%</strong></div>
+          <div class="stat-mini-card"><i class="fa-solid fa-calendar-week"></i><span>Contract Days</span><strong id="contractDaysDisplay">0 Days</strong></div>
+          <div class="stat-mini-card"><i class="fa-solid fa-users"></i><span>Active Investors</span><strong id="investorCount">10K+</strong></div>
+        </div>
+
+        <h2 class="section-headline"><i class="fa-solid fa-crown"></i> Investment Plans (1‑Year)</h2>
+        <p class="section-subline">Choose your plan and start earning daily returns for 365 days.</p>
+        <div id="vipPlansContainer"></div>
+      </div> <!-- end HOME -->
+
+      <!-- ===== VIEW 2: MINING ===== -->
+      <div id="viewTask" class="app-view">
+        <h2 class="section-headline"><i class="fa-solid fa-hand-holding-usd"></i> Daily Income Settlement</h2>
+        <p class="section-subline">VIP users can claim their daily rate once per day. Each claim subtracts 1 contract day.</p>
+
+        <div class="task-container">
+          <div class="task-status">Active Level: <span id="taskPackageLabel" style="font-weight:700; color:#1a6bff;">NONE</span></div>
+          <div style="margin:16px 0; background:#0b0d17; border-radius:14px; padding:14px; border:1px solid rgba(255,255,255,0.05);">
+            <div style="font-size:0.7rem; color:#6a8a9a;">Your Daily VIP Earnings</div>
+            <div style="font-size:1.4rem; font-weight:800;" id="taskRewardLabel">₦0</div>
+            <button class="claim-btn" id="claimTodayBtn" style="margin-top:8px;">
+              <i class="fa-solid fa-hand-holding-usd"></i> Claim Today
+            </button>
+          </div>
+          <div style="margin-top:12px; font-size:0.7rem; color:#6a8a9a;">
+            <i class="fa-solid fa-clock"></i> Midnight Reset: <span id="countdownDisplay" style="color:#1a6bff;">--:--:--</span>
+          </div>
+          <div id="claimStatusMessage" style="margin-top:10px; font-size:0.75rem;"></div>
+        </div>
+
+        <div style="margin-top:16px; border-radius:16px; padding:14px; border:1px solid #e0e8f4; transition: background 0.3s, border-color 0.3s; background: #f8faff; display:flex; justify-content:space-between; font-size:0.8rem;">
+          <span>Contract Days Remaining: <strong id="premiumDaysRemainingText">0</strong></span>
+          <span>VIP Daily Rate: <strong id="dailyRateDisplay2">₦0</strong></span>
+        </div>
+      </div> <!-- end MINING -->
+
+      <!-- ===== VIEW 3: TEAM ===== -->
+      <div id="viewTeam" class="app-view">
+        <h2 class="section-headline"><i class="fa-solid fa-users-between"></i> Affiliate Hub</h2>
+        <p class="section-subline">Refer friends and earn <strong style="color:#e53e3e;">45%</strong> Lvl 1 + <strong style="color:#1a6bff;">5%</strong> Lvl 2 commissions! <br /> <span style="color:#f59e0b; font-size:0.7rem;">💡 Claim commissions manually from your referral list.</span></p>
+
+        <div class="link-copy-card">
+          <h4 style="font-size:0.75rem; color:#1a6bff; text-transform:uppercase;"><i class="fa-solid fa-link"></i> Tracking Referral Link</h4>
+          <div class="link-field">
+            <span id="inviteLinkText">https://swiftduel.name.ng?ref=loading...</span>
+            <button class="btn-copy" id="copyLinkBtn">COPY</button>
+          </div>
+        </div>
+
+        <!-- Referral Stats -->
+        <div style="display:grid; grid-template-columns:1fr 1fr; gap:12px; margin-bottom:12px;">
+          <div style="border-radius:14px; padding:14px; border:1px solid #e0e8f4; border-left:3px solid #1a6bff; background:#f8faff; transition: background 0.3s, border-color 0.3s;">
+            <h4 style="font-size:0.65rem; text-transform:uppercase; color:#6a8a9a;">Direct (Lvl 1)</h4>
+            <p style="font-size:1rem; font-weight:700;" id="teamSizeText">0 Users</p>
+          </div>
+          <div style="border-radius:14px; padding:14px; border:1px solid #e0e8f4; border-left:3px solid #e53e3e; background:#f8faff; transition: background 0.3s, border-color 0.3s;">
+            <h4 style="font-size:0.65rem; text-transform:uppercase; color:#6a8a9a;">Sub-Tier (Lvl 2)</h4>
+            <p style="font-size:1rem; font-weight:700;" id="teamLvl2SizeText">0 Users</p>
+          </div>
+        </div>
+
+        <div style="border-radius:14px; padding:14px; border:1px solid #e0e8f4; margin-bottom:12px; background:#f8faff; transition: background 0.3s, border-color 0.3s;">
+          <div style="display:flex; justify-content:space-between;">
+            <span style="font-size:0.7rem; color:#6a8a9a;">Bonus Pay Total</span>
+            <span style="font-weight:700; color:#10b981;" id="teamRebateText">₦0.00</span>
+          </div>
+          <div style="display:flex; justify-content:space-between; margin-top:6px;">
+            <span style="font-size:0.7rem; color:#6a8a9a;">Team Node Capital</span>
+            <span style="font-weight:700; color:#1a6bff;" id="teamCapitalVolumeText">₦0.00</span>
+          </div>
+        </div>
+
+        <!-- Detailed Referral List -->
+        <h3 style="font-size:0.9rem; font-weight:800; margin:12px 0 8px;">Your Referrals (Lvl 1)</h3>
+        <div id="referralListContainer" style="border-radius:14px; padding:12px; border:1px solid #e0e8f4; max-height:300px; overflow-y:auto; background:#f8faff; transition: background 0.3s, border-color 0.3s;">
+          <p style="font-size:0.75rem; color:#6a8a9a; text-align:center;">Loading referrals...</p>
+        </div>
+
+        <!-- Sub-Referrals (Lvl 2) -->
+        <h3 style="font-size:0.9rem; font-weight:800; margin:12px 0 8px;">Your Sub-Referrals (Lvl 2)</h3>
+        <div id="subReferralListContainer" style="border-radius:14px; padding:12px; border:1px solid #e0e8f4; max-height:300px; overflow-y:auto; background:#f8faff; transition: background 0.3s, border-color 0.3s;">
+          <p style="font-size:0.75rem; color:#6a8a9a; text-align:center;">Loading sub-referrals...</p>
+        </div>
+      </div> <!-- end TEAM -->
+
+      <!-- ===== VIEW 4: PROFILE ===== -->
+      <div id="viewProfile" class="app-view">
+        <div class="profile-hero">
+          <div class="avatar-large" id="profileAvatar">U</div>
+          <h3 id="profileUsernameDisplay">loading...</h3>
+          <div style="font-size:0.7rem; color:#6a8a9a;" id="profileRegDateDisplay">Profile Registered: --</div>
+          <div class="profile-rank" id="profileRankLabel">STANDARD MEMBER</div>
+        </div>
+
+        <!-- Bank Details -->
+        <div class="profile-management-group" id="bankGroup">
+          <h4 style="font-size:0.8rem; color:#1a6bff; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-building-columns"></i> Link Payout Account</h4>
+          <div id="bankFormFields">
+            <div class="input-row">
+              <label>Bank</label>
+              <select id="inputBankName">
+                <option value="">Select Bank</option>
+                <option value="OPay">OPay</option>
+                <option value="PalmPay">PalmPay</option>
+                <option value="GTBank">GTBank</option>
+                <option value="Access Bank">Access Bank</option>
+                <option value="Zenith Bank">Zenith Bank</option>
+                <option value="UBA">UBA</option>
+                <option value="First Bank">First Bank</option>
+              </select>
+            </div>
+            <div class="input-row">
+              <label>Account Name</label>
+              <input type="text" id="inputBankHolderName" placeholder="John Doe" />
+            </div>
+            <div class="input-row">
+              <label>Account Number</label>
+              <input type="text" id="inputBankNumber" placeholder="0123456789" maxlength="10" />
+            </div>
+            <button id="saveBankBtn" style="width:100%; padding:10px; background:#1a6bff; color:#fff; border:none; border-radius:10px; font-weight:700; cursor:pointer;">Save Bank Details</button>
+          </div>
+          <div class="shrunk-bank-display" id="shrunkBankDisplay">
+            <p><span class="label">Bank:</span> <span class="value" id="shrunkLabelBank">-</span></p>
+            <p><span class="label">Account Name:</span> <span class="value" id="shrunkLabelHolder">-</span></p>
+            <p><span class="label">Account Number:</span> <span class="value" id="shrunkLabelNumber">-</span></p>
+            <p style="font-size:0.6rem; color:#10b981; margin-top:4px;"><i class="fa-solid fa-check-circle"></i> Bank details saved. To change, contact support.</p>
+          </div>
+        </div>
+
+        <!-- History & Withdraw Info -->
+        <div class="profile-management-group">
+          <h4 style="font-size:0.8rem; color:#1a6bff; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-receipt"></i> Account History</h4>
+          <a href="history.html" style="display:block; text-align:center; padding:10px; background:#1a6bff; color:#fff; border-radius:10px; text-decoration:none; font-weight:700;">View History Log</a>
+        </div>
+
+        <div class="profile-management-group" id="withdrawInfo">
+          <h4 style="font-size:0.8rem; color:#1a6bff; display:flex; align-items:center; gap:8px;"><i class="fa-solid fa-info-circle"></i> Withdrawal Rules</h4>
+          <div style="font-size:0.8rem; text-align:left;">
+            <p><strong>Task Wallet Minimum:</strong> <span id="minWithdrawDisplay">₦0</span></p>
+            <p style="font-size:0.7rem; color:#6a8a9a;">You must reach the minimum again before each withdrawal.</p>
+            <p><strong>Referral Wallet:</strong> ₦1,000 minimum, daily 7am‑7pm.</p>
+          </div>
+        </div>
+      </div> <!-- end PROFILE -->
+
+    </div> <!-- end workspace -->
+
+    <!-- ---- BOTTOM NAV ---- -->
+    <nav class="bottom-nav">
+      <div class="nav-tab active-tab" id="tabHome" onclick="switchTab('Home')">
+        <i class="fa-solid fa-house-chimney"></i><span class="nav-label">Home</span>
+      </div>
+      <div class="nav-tab" id="tabTask" onclick="switchTab('Task')">
+        <i class="fa-solid fa-list-check"></i><span class="nav-label">Mining</span>
+      </div>
+      <div class="nav-tab" id="tabTeam" onclick="switchTab('Team')">
+        <i class="fa-solid fa-users"></i><span class="nav-label">Team</span>
+      </div>
+      <div class="nav-tab" id="tabProfile" onclick="switchTab('Profile')">
+        <i class="fa-solid fa-circle-user"></i><span class="nav-label">Account</span>
+      </div>
+    </nav>
+
+    <!-- ---- FLOATING BUTTONS ---- -->
+    <div class="floating-action-panel">
+      <div class="action-float-btn" onclick="openModal('supportModal')">
+        <i class="fa-solid fa-headset"></i><span class="float-btn-label">Support</span>
+      </div>
+      <div class="action-float-btn" onclick="openModal('voucherModal')">
+        <i class="fa-solid fa-gift"></i><span class="float-btn-label">Voucher</span>
+      </div>
+      <div class="action-float-btn" id="checkinBtn" onclick="handleCheckIn()" style="display:flex;">
+        <i class="fa-solid fa-calendar-check"></i>
+        <span class="float-btn-label">Check‑In</span>
+      </div>
+    </div>
+
+    <!-- ===== MODALS ===== -->
+    <div class="portal-modal-overlay" id="supportModal">
+      <div class="portal-modal-card">
+        <i class="fa-solid fa-xmark portal-modal-close" onclick="closeModal('supportModal')"></i>
+        <i class="fa-solid fa-paper-plane" style="font-size:2rem; color:#1a6bff; margin-bottom:12px;"></i>
+        <h3>SwiftDuel Payout Channel</h3>
+        <p style="font-size:0.75rem; color:#6a8a9a; margin-bottom:14px;">Join our official channel for updates, support, and payout announcements.</p>
+        <a href="https://t.me/swiftduel" target="_blank" class="support-channel-row" style="border-color: #1a6bff;">
+          <span><i class="fa-brands fa-telegram" style="color:#1a6bff;"></i> SwiftDuel Official Channel</span>
+          <i class="fa-solid fa-arrow-right"></i>
+        </a>
+      </div>
+    </div>
+
+    <!-- ===== VOUCHER MODAL ===== -->
+    <div class="portal-modal-overlay" id="voucherModal">
+      <div class="portal-modal-card">
+        <i class="fa-solid fa-xmark portal-modal-close" onclick="closeModal('voucherModal')"></i>
+        <i class="fa-solid fa-gift" style="font-size:2rem; color:#1a6bff; margin-bottom:12px;"></i>
+        <h3>Gift Card / Voucher Redemption</h3>
+        <p style="font-size:0.7rem; color:#6a8a9a; margin-bottom:14px;">Enter your 6‑character voucher code to claim bonus amount</p>
+        <div class="gift-card-section">
+          <input type="text" id="voucherCodeField" placeholder="Enter 6‑char code" maxlength="6" style="width:100%; padding:10px; border:2px solid #dce4f0; border-radius:10px; font-size:0.9rem; text-align:center; text-transform:uppercase; letter-spacing:1px; background:#fafcff; margin-bottom:10px; transition:0.2s;" />
+          <button class="btn-buy-package" id="claimVoucherBtn">Verify & Claim</button>
+        </div>
+        <div id="voucherFeedback" style="margin-top:10px; font-size:0.7rem;"></div>
+        <div style="margin-top:10px; font-size:0.6rem; color:#6a8a9a;">
+          <i class="fa-solid fa-circle-info"></i> VIP 1+ required | One claim per user per voucher | 6 chars only
+        </div>
+      </div>
+    </div>
+
+  </div> <!-- end app-container -->
+
+
+  <!-- ============================================================
+  JAVASCRIPT – FULL DASHBOARD WITH VOUCHER AUTO‑CLOSE AFTER 5 SECONDS
+  ============================================================ -->
+  <script>
+    // ============================================================
+    // FIREBASE CONFIG
+    // ============================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQ3uDQ2h61dDNeRowTpItGgrZridn3s40",
+      authDomain: "swiftduel.firebaseapp.com",
+      databaseURL: "https://swiftduel-default-rtdb.firebaseio.com",
+      projectId: "swiftduel",
+      storageBucket: "swiftduel.firebasestorage.app",
+      messagingSenderId: "114652592444",
+      appId: "1:114652592444:web:19ce34c0a6af62c4de0639"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // ============================================================
+    // VIP PACKAGES
+    // ============================================================
+    const VIP_PACKAGES = [
+      { level: 1, price: 500, dailyRate: 50 },
+      { level: 2, price: 1000, dailyRate: 100 },
+      { level: 3, price: 2500, dailyRate: 300 },
+      { level: 4, price: 4000, dailyRate: 500 },
+      { level: 5, price: 5500, dailyRate: 700 },
+      { level: 6, price: 7500, dailyRate: 1000 },
+      { level: 7, price: 10000, dailyRate: 1500 },
+      { level: 8, price: 13000, dailyRate: 2100 },
+      { level: 9, price: 16500, dailyRate: 3000 }
+    ];
+
+    // ============================================================
+    // GLOBALS
+    // ============================================================
+    let currentUser = null;
+    let userData = null;
+    let adminSettings = null;
+    let isMaintenance = false;
+    let isClaiming = false;
+    let checkinCooldown = false;
+    let isRedeeming = false;
+    let pollInterval = null;
+    let isFirstLoad = true;
+    let voucherCloseTimer = null;
+
+    // Cache
+    const CACHE_KEY = 'swiftduel_dashboard_cache';
+    let cachedData = null;
+
+    // ============================================================
+    // DOM REFS
+    // ============================================================
+    const displayUserBalance = document.getElementById('displayUserBalance');
+    const displayTotalEarnings = document.getElementById('displayTotalEarnings');
+    const displayActiveRank = document.getElementById('displayActiveRank');
+    const dailyRoiDisplay = document.getElementById('dailyRoiDisplay');
+    const contractDaysDisplay = document.getElementById('contractDaysDisplay');
+    const taskPackageLabel = document.getElementById('taskPackageLabel');
+    const taskRewardLabel = document.getElementById('taskRewardLabel');
+    const claimTodayBtn = document.getElementById('claimTodayBtn');
+    const countdownDisplay = document.getElementById('countdownDisplay');
+    const premiumDaysRemainingText = document.getElementById('premiumDaysRemainingText');
+    const dailyRateDisplay2 = document.getElementById('dailyRateDisplay2');
+    const inviteLinkText = document.getElementById('inviteLinkText');
+    const copyLinkBtn = document.getElementById('copyLinkBtn');
+    const teamSizeText = document.getElementById('teamSizeText');
+    const teamLvl2SizeText = document.getElementById('teamLvl2SizeText');
+    const teamRebateText = document.getElementById('teamRebateText');
+    const teamCapitalVolumeText = document.getElementById('teamCapitalVolumeText');
+    const referralListContainer = document.getElementById('referralListContainer');
+    const subReferralListContainer = document.getElementById('subReferralListContainer');
+    const profileAvatar = document.getElementById('profileAvatar');
+    const profileUsernameDisplay = document.getElementById('profileUsernameDisplay');
+    const profileRegDateDisplay = document.getElementById('profileRegDateDisplay');
+    const profileRankLabel = document.getElementById('profileRankLabel');
+    const vipPlansContainer = document.getElementById('vipPlansContainer');
+    const claimStatusMessage = document.getElementById('claimStatusMessage');
+    const minWithdrawDisplay = document.getElementById('minWithdrawDisplay');
+    const checkinBtn = document.getElementById('checkinBtn');
+    const voucherCodeField = document.getElementById('voucherCodeField');
+    const claimVoucherBtn = document.getElementById('claimVoucherBtn');
+    const voucherFeedback = document.getElementById('voucherFeedback');
+    const refreshBtn = document.getElementById('refreshBtn');
+    const refreshIcon = document.getElementById('refreshIcon');
+    const maintenanceBanner = document.getElementById('maintenanceBanner');
+    const depositTile = document.getElementById('depositTile');
+    const withdrawTile = document.getElementById('withdrawTile');
+
+    const toast = document.getElementById('customToast');
+    const toastMsg = document.getElementById('toastMsg');
+    const darkToggle = document.getElementById('darkModeToggle');
+
+    // ============================================================
+    // TOAST
+    // ============================================================
+    function showToast(msg, isError = false) {
+      const icon = toast.querySelector('i');
+      icon.className = isError ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+      icon.style.color = isError ? '#ef4444' : '#10b981';
+      toastMsg.innerText = msg;
+      toast.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // ============================================================
+    // CACHE HELPERS
+    // ============================================================
+    function loadCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) {
+          cachedData = JSON.parse(raw);
+          return cachedData;
+        }
+      } catch (e) { /* ignore */ }
+      return null;
+    }
+
+    function saveCache(data) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      } catch (e) { /* ignore */ }
+    }
+
+    // ============================================================
+    // DARK MODE
+    // ============================================================
+    (function() {
+      const saved = localStorage.getItem('swiftTheme');
+      if (saved === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+      } else {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+      }
+      darkToggle.addEventListener('click', function() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        document.body.classList.toggle('light-mode');
+        if (isDark) {
+          darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+          localStorage.setItem('swiftTheme', 'dark');
+        } else {
+          darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+          localStorage.setItem('swiftTheme', 'light');
+        }
+      });
+    })();
+
+    // ============================================================
+    // TAB SWITCHING
+    // ============================================================
+    window.switchTab = function(view) {
+      document.querySelectorAll('.app-view').forEach(v => v.classList.remove('active-view'));
+      document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active-tab'));
+      const viewEl = document.getElementById('view' + view);
+      const tabEl = document.getElementById('tab' + view);
+      if (viewEl) viewEl.classList.add('active-view');
+      if (tabEl) tabEl.classList.add('active-tab');
+    };
+
+    // ============================================================
+    // MODAL HELPERS
+    // ============================================================
+    window.openModal = function(id) {
+      document.getElementById(id).classList.add('active');
+    };
+    window.closeModal = function(id) {
+      document.getElementById(id).classList.remove('active');
+      // Clear timer if modal closed manually
+      if (id === 'voucherModal' && voucherCloseTimer) {
+        clearTimeout(voucherCloseTimer);
+        voucherCloseTimer = null;
+      }
+    };
+
+    // ============================================================
+    // GET TODAY
+    // ============================================================
+    function getTodayStr() { return new Date().toISOString().split('T')[0]; }
+
+    // ============================================================
+    // COUNTDOWN TO MIDNIGHT
+    // ============================================================
+    setInterval(() => {
+      const now = new Date();
+      const midnight = new Date(now);
+      midnight.setHours(24, 0, 0, 0);
+      const diff = midnight - now;
+      const h = String(Math.floor(diff / 3600000)).padStart(2, '0');
+      const m = String(Math.floor((diff % 3600000) / 60000)).padStart(2, '0');
+      const s = String(Math.floor((diff % 60000) / 1000)).padStart(2, '0');
+      if (countdownDisplay) countdownDisplay.textContent = h + ':' + m + ':' + s;
+    }, 1000);
+
+    // ============================================================
+    // RENDER VIP PLANS
+    // ============================================================
+    function renderVIPPlans() {
+      let html = '';
+      VIP_PACKAGES.forEach(pkg => {
+        const total = pkg.dailyRate * 365;
+        html += `
+          <div class="package-card" data-tier="${pkg.level}">
+            <div class="package-header">
+              <span class="package-title-text"><i class="fa-solid fa-star"></i> VIP ${pkg.level}</span>
+              <span class="package-price">₦${pkg.price.toLocaleString()}</span>
+            </div>
+            <div class="package-details">
+              <div class="detail-item"><i class="fa-solid fa-calendar-days"></i> Contract: 365 Days</div>
+              <div class="detail-item"><i class="fa-solid fa-money-bill-wave"></i> Daily Earnings: ₦${pkg.dailyRate}</div>
+              <div class="detail-item"><i class="fa-solid fa-chart-line"></i> Total Income: ₦${total.toLocaleString()}</div>
+            </div>
+            <button class="btn-buy-package upgrade-btn" data-tier="${pkg.level}" data-name="VIP ${pkg.level}" data-cost="${pkg.price}" data-yield="${pkg.dailyRate}">Activate Plan</button>
+          </div>
+        `;
+      });
+      vipPlansContainer.innerHTML = html;
+      document.querySelectorAll('.upgrade-btn').forEach(btn => {
+        btn.removeEventListener('click', handleUpgrade);
+        btn.addEventListener('click', handleUpgrade);
+      });
+    }
+    renderVIPPlans();
+
+    // ============================================================
+    // UPDATE DASHBOARD
+    // ============================================================
+    function updateDashboard(user) {
+      if (!user) return;
+
+      const { name, vipLevel, taskBalance, referralBalance, vipUpgradedAt, lastClaimDate, referralCode, createdAt, bankName, accountName, accountNumber, contractDaysRemaining, status } = user;
+
+      if (status === 'banned') {
+        showToast('Your account has been suspended. Please contact support.', true);
+        claimTodayBtn.disabled = true;
+        claimTodayBtn.innerHTML = '<i class="fa-solid fa-ban"></i> Account Suspended';
+        document.querySelectorAll('.upgrade-btn').forEach(b => b.disabled = true);
+        document.querySelectorAll('.action-tile').forEach(b => b.style.pointerEvents = 'none');
+        return;
+      } else {
+        document.querySelectorAll('.upgrade-btn').forEach(b => b.disabled = false);
+        document.querySelectorAll('.action-tile').forEach(b => b.style.pointerEvents = 'auto');
+      }
+
+      const vipInfo = VIP_PACKAGES.find(p => p.level === vipLevel) || { dailyRate: 0 };
+      const dailyRate = vipInfo.dailyRate || 0;
+      const daysActive = vipLevel > 0 ? Math.floor((Date.now() - vipUpgradedAt) / 86400000) : 0;
+      const totalBal = (taskBalance || 0) + (referralBalance || 0);
+      const daysLeft = (contractDaysRemaining !== undefined) ? contractDaysRemaining : (vipLevel > 0 ? 365 - daysActive : 0);
+      const minWithdraw = dailyRate * 30;
+
+      displayUserBalance.textContent = '₦' + totalBal.toLocaleString();
+      displayTotalEarnings.textContent = '₦' + totalBal.toLocaleString();
+      displayActiveRank.textContent = vipLevel > 0 ? 'VIP ' + vipLevel : 'STANDARD';
+      dailyRoiDisplay.textContent = vipLevel > 0 ? (dailyRate / 500 * 100).toFixed(1) + '%' : '0%';
+      contractDaysDisplay.textContent = vipLevel > 0 ? daysLeft + ' Days' : 'N/A';
+
+      taskPackageLabel.textContent = vipLevel > 0 ? 'VIP ' + vipLevel : 'NONE';
+      taskRewardLabel.textContent = '₦' + dailyRate;
+      dailyRateDisplay2.textContent = '₦' + dailyRate;
+
+      const today = getTodayStr();
+      const claimedToday = lastClaimDate === today;
+      const canClaim = vipLevel > 0 && daysLeft > 0 && !claimedToday && status !== 'banned' && !isMaintenance;
+      claimTodayBtn.disabled = !canClaim;
+      if (isMaintenance) {
+        claimTodayBtn.innerHTML = '<i class="fa-solid fa-tools"></i> Maintenance';
+      } else if (vipLevel === 0) {
+        claimTodayBtn.innerHTML = '<i class="fa-solid fa-lock"></i> VIP Required';
+      } else if (claimedToday) {
+        claimTodayBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Already Claimed';
+      } else if (daysLeft <= 0) {
+        claimTodayBtn.innerHTML = '<i class="fa-solid fa-hourglass-end"></i> Contract Expired';
+      } else {
+        claimTodayBtn.innerHTML = '<i class="fa-solid fa-hand-holding-usd"></i> Claim Today';
+      }
+
+      if (vipLevel > 0 && status !== 'banned' && !isMaintenance) {
+        checkinBtn.style.display = 'flex';
+      } else {
+        checkinBtn.style.display = 'none';
+      }
+
+      premiumDaysRemainingText.textContent = daysLeft > 0 ? daysLeft : 0;
+      if (referralCode) inviteLinkText.textContent = 'https://swiftduel.name.ng?ref=' + referralCode;
+
+      profileAvatar.textContent = name ? name.charAt(0).toUpperCase() : 'U';
+      profileUsernameDisplay.textContent = name || 'User';
+      profileRankLabel.textContent = vipLevel > 0 ? 'VIP TIER: ' + vipLevel : 'STANDARD MEMBER';
+      if (createdAt) {
+        const d = new Date(createdAt);
+        profileRegDateDisplay.textContent = 'Profile Registered: ' + d.toLocaleDateString('en-GB', { day: 'numeric', month: 'short', year: 'numeric' });
+      }
+
+      minWithdrawDisplay.textContent = '₦' + minWithdraw.toLocaleString();
+
+      if (bankName && accountNumber && accountName) {
+        document.getElementById('bankFormFields').style.display = 'none';
+        document.getElementById('shrunkBankDisplay').style.display = 'block';
+        document.getElementById('shrunkLabelBank').textContent = bankName;
+        document.getElementById('shrunkLabelHolder').textContent = accountName;
+        document.getElementById('shrunkLabelNumber').textContent = accountNumber;
+      } else {
+        document.getElementById('bankFormFields').style.display = 'block';
+        document.getElementById('shrunkBankDisplay').style.display = 'none';
+      }
+
+      // Maintenance actions: disable Deposit & Withdraw tiles
+      if (isMaintenance) {
+        depositTile.style.pointerEvents = 'none';
+        depositTile.style.opacity = '0.5';
+        withdrawTile.style.pointerEvents = 'none';
+        withdrawTile.style.opacity = '0.5';
+      } else {
+        depositTile.style.pointerEvents = 'auto';
+        depositTile.style.opacity = '1';
+        withdrawTile.style.pointerEvents = 'auto';
+        withdrawTile.style.opacity = '1';
+      }
+
+      saveCache(user);
+      loadReferralData();
+    }
+
+    // ============================================================
+    // CLAIM REFERRAL COMMISSION
+    // ============================================================
+    window.claimReferral = async function(key, amount, type) {
+      if (isMaintenance) {
+        showToast('Platform is under maintenance. Please try later.', true);
+        return;
+      }
+      if (!currentUser) return showToast('Please login first.', true);
+      try {
+        const snap = await db.ref('referrals/' + key).once('value');
+        if (!snap.exists()) return showToast('Referral not found.', true);
+        const data = snap.val();
+        if (data.status !== 'pending_claim') {
+          return showToast('This commission has already been claimed or is not available.', true);
+        }
+
+        let confirmResult;
+        try {
+          confirmResult = await Swal.fire({
+            title: 'Claim Referral Bonus?',
+            html: `You will receive <strong>₦${amount.toLocaleString()}</strong> from <strong>${data.referredName || 'User'}</strong>.`,
+            icon: 'question',
+            showCancelButton: true,
+            confirmButtonColor: '#10b981',
+            cancelButtonColor: '#e53e3e',
+            background: '#122a3a',
+            color: '#eef4ff',
+            confirmButtonText: '✅ Claim Now',
+            cancelButtonText: 'Cancel'
+          });
+        } catch (e) {
+          confirmResult = { isConfirmed: confirm(`Claim ₦${amount.toLocaleString()} from ${data.referredName || 'User'}?`) };
+        }
+        if (!confirmResult.isConfirmed) return;
+
+        const newBalance = (userData.referralBalance || 0) + amount;
+        await db.ref('users/' + currentUser.uid).update({
+          referralBalance: newBalance
+        });
+        await db.ref('referrals/' + key).update({
+          status: 'claimed'
+        });
+        await db.ref('ledger').push({
+          uid: currentUser.uid,
+          title: `🎯 Claimed ${type} Referral Commission (₦${data.vipPurchaseAmount} plan)`,
+          amount: amount,
+          type: 'credit',
+          timestamp: Date.now()
+        });
+        showToast('✅ Claimed ₦' + amount.toLocaleString() + ' referral bonus!');
+
+        const userSnap = await db.ref('users/' + currentUser.uid).once('value');
+        if (userSnap.exists()) {
+          userData = userSnap.val();
+          updateDashboard(userData);
+        }
+      } catch (e) {
+        console.error('Claim referral error:', e);
+        showToast('Error claiming referral.', true);
+      }
+    };
+
+    // ============================================================
+    // LOAD REFERRAL DATA
+    // ============================================================
+    let referralListeners = [];
+
+    async function loadReferralData() {
+      if (!currentUser) return;
+      referralListeners.forEach(ref => ref());
+      referralListeners = [];
+
+      const uid = currentUser.uid;
+
+      const refsRef = db.ref('referrals').orderByChild('referrerUid').equalTo(uid);
+      const onRefs = refsRef.on('value', async (snap) => {
+        if (!snap.exists()) {
+          referralListContainer.innerHTML = '<p style="font-size:0.75rem; color:#6a8a9a; text-align:center;">No direct referrals yet.</p>';
+          teamSizeText.textContent = '0 Users';
+          return;
+        }
+
+        let total = 0;
+        let bonusTotal = 0;
+        let teamCapital = 0;
+        let lvl1Uids = [];
+        let refDataList = [];
+
+        const data = snap.val();
+        const promises = [];
+
+        for (const [key, ref] of Object.entries(data)) {
+          total++;
+          const referredUid = ref.referredUid;
+          if (referredUid) lvl1Uids.push(referredUid);
+
+          const userPromise = db.ref('users/' + referredUid).once('value');
+          promises.push(userPromise.then((userSnap) => {
+            let name = 'Unknown User';
+            let vipLevel = 0;
+            if (userSnap.exists()) {
+              const user = userSnap.val();
+              name = user.name || user.username || 'Unknown';
+              vipLevel = user.vipLevel || 0;
+            }
+            const commissionAmount = ref.commission || 0;
+            const status = ref.status || 'pending';
+            const isPendingClaim = (status === 'pending_claim');
+            const isClaimed = (status === 'claimed' || status === 'commission_paid');
+            if (isClaimed) bonusTotal += commissionAmount;
+            if (ref.vipPurchaseAmount) teamCapital += ref.vipPurchaseAmount;
+
+            refDataList.push({
+              key,
+              name,
+              uid: referredUid,
+              vipLevel,
+              commission: commissionAmount,
+              status: status,
+              isPendingClaim,
+              isClaimed,
+              timestamp: ref.timestamp || 0,
+              vipPurchaseAmount: ref.vipPurchaseAmount || 0
+            });
+          }));
+        }
+
+        await Promise.all(promises);
+        refDataList.sort((a, b) => b.timestamp - a.timestamp);
+
+        let html = '';
+        if (refDataList.length === 0) {
+          html = '<p style="font-size:0.75rem; color:#6a8a9a; text-align:center;">No direct referrals yet.</p>';
+        } else {
+          refDataList.forEach(r => {
+            const vipText = r.vipLevel > 0 ? 'VIP ' + r.vipLevel : 'Standard';
+            let actionHtml = '';
+            if (r.isPendingClaim && r.commission > 0 && !isMaintenance) {
+              actionHtml = `<button class="claim-ref-btn" onclick="claimReferral('${r.key}', ${r.commission}, 'Lvl 1')"><i class="fa-solid fa-hand-holding-usd"></i> Claim ₦${r.commission}</button>`;
+            } else if (r.isClaimed) {
+              actionHtml = `<span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-check-circle"></i> Claimed</span>`;
+            } else if (r.status === 'pending' && r.vipLevel === 0) {
+              actionHtml = `<span style="color:#6b7280; font-size:0.65rem;">⏳ Waiting for VIP</span>`;
+            } else if (r.status === 'pending' && r.vipLevel > 0) {
+              actionHtml = `<span style="color:#f59e0b; font-size:0.65rem;">⏳ Processing...</span>`;
+            } else {
+              actionHtml = `<span style="color:#6b7280; font-size:0.65rem;">${r.status}</span>`;
+            }
+            html += `
+              <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e0e8f4; font-size:0.75rem;">
+                <div>
+                  <strong>${r.name}</strong>
+                  <span style="color:#1a6bff; font-size:0.6rem;">${vipText}</span>
+                </div>
+                <div style="text-align:right; display:flex; align-items:center; gap:6px;">
+                  ${actionHtml}
+                </div>
+              </div>
+            `;
+          });
+        }
+        referralListContainer.innerHTML = html;
+        teamSizeText.textContent = total + ' Users';
+        teamRebateText.textContent = '₦' + bonusTotal.toLocaleString();
+        teamCapitalVolumeText.textContent = '₦' + teamCapital.toLocaleString();
+
+        loadSubReferrals(lvl1Uids);
+      });
+      referralListeners.push(() => refsRef.off());
+    }
+
+    async function loadSubReferrals(lvl1Uids) {
+      if (!lvl1Uids || lvl1Uids.length === 0) {
+        subReferralListContainer.innerHTML = '<p style="font-size:0.75rem; color:#6a8a9a; text-align:center;">No sub-referrals yet.</p>';
+        teamLvl2SizeText.textContent = '0 Users';
+        return;
+      }
+
+      let allSubs = [];
+      let totalSubs = 0;
+
+      for (const lvl1Uid of lvl1Uids) {
+        const snap = await db.ref('referrals').orderByChild('referrerUid').equalTo(lvl1Uid).once('value');
+        if (snap.exists()) {
+          const data = snap.val();
+          totalSubs += Object.keys(data).length;
+          for (const [key, ref] of Object.entries(data)) {
+            const referredUid = ref.referredUid;
+            if (referredUid) {
+              const userSnap = await db.ref('users/' + referredUid).once('value');
+              let name = 'Unknown';
+              let vipLevel = 0;
+              if (userSnap.exists()) {
+                const user = userSnap.val();
+                name = user.name || user.username || 'Unknown';
+                vipLevel = user.vipLevel || 0;
+              }
+              const commission = ref.commission || 0;
+              const status = ref.status || 'pending';
+              const isPendingClaim = (status === 'pending_claim');
+              const isClaimed = (status === 'claimed' || status === 'commission_paid');
+              allSubs.push({
+                key,
+                name,
+                uid: referredUid,
+                vipLevel,
+                commission,
+                status,
+                isPendingClaim,
+                isClaimed,
+                timestamp: ref.timestamp || 0,
+                vipPurchaseAmount: ref.vipPurchaseAmount || 0
+              });
+            }
+          }
+        }
+      }
+
+      allSubs.sort((a, b) => b.timestamp - a.timestamp);
+
+      let html = '';
+      if (allSubs.length === 0) {
+        html = '<p style="font-size:0.75rem; color:#6a8a9a; text-align:center;">No sub-referrals yet.</p>';
+      } else {
+        allSubs.forEach(r => {
+          const vipText = r.vipLevel > 0 ? 'VIP ' + r.vipLevel : 'Standard';
+          let actionHtml = '';
+          if (r.isPendingClaim && r.commission > 0 && !isMaintenance) {
+            actionHtml = `<button class="claim-ref-btn" onclick="claimReferral('${r.key}', ${r.commission}, 'Lvl 2')"><i class="fa-solid fa-hand-holding-usd"></i> Claim ₦${r.commission}</button>`;
+          } else if (r.isClaimed) {
+            actionHtml = `<span style="color:#10b981; font-size:0.65rem;"><i class="fa-solid fa-check-circle"></i> Claimed</span>`;
+          } else if (r.status === 'pending' && r.vipLevel === 0) {
+            actionHtml = `<span style="color:#6b7280; font-size:0.65rem;">⏳ Waiting for VIP</span>`;
+          } else if (r.status === 'pending' && r.vipLevel > 0) {
+            actionHtml = `<span style="color:#f59e0b; font-size:0.65rem;">⏳ Processing...</span>`;
+          } else {
+            actionHtml = `<span style="color:#6b7280; font-size:0.65rem;">${r.status}</span>`;
+          }
+          html += `
+            <div style="display:flex; justify-content:space-between; align-items:center; padding:6px 0; border-bottom:1px solid #e0e8f4; font-size:0.75rem;">
+              <div>
+                <strong>${r.name}</strong>
+                <span style="color:#e53e3e; font-size:0.6rem;">${vipText}</span>
+              </div>
+              <div style="text-align:right; display:flex; align-items:center; gap:6px;">
+                ${actionHtml}
+              </div>
+            </div>
+          `;
+        });
+      }
+      subReferralListContainer.innerHTML = html;
+      teamLvl2SizeText.textContent = totalSubs + ' Users';
+    }
+
+    // ============================================================
+    // CLAIM TODAY
+    // ============================================================
+    claimTodayBtn.addEventListener('click', async function() {
+      if (isClaiming) return;
+      if (isMaintenance) {
+        showToast('Platform is under maintenance. Claims are disabled.', true);
+        return;
+      }
+      if (!currentUser || !userData) {
+        showToast('Please login first.', true);
+        return;
+      }
+      if (userData.vipLevel === 0) {
+        showToast('VIP plan required to claim daily earnings.', true);
+        return;
+      }
+      if (userData.status === 'banned') {
+        showToast('Account suspended.', true);
+        return;
+      }
+
+      const today = getTodayStr();
+      if (userData.lastClaimDate === today) {
+        showToast('Already claimed your daily rate today!', true);
+        return;
+      }
+
+      let daysLeft = userData.contractDaysRemaining || 0;
+      if (daysLeft <= 0) {
+        showToast('Your contract has expired. Please upgrade.', true);
+        return;
+      }
+
+      const vipInfo = VIP_PACKAGES.find(p => p.level === userData.vipLevel);
+      const rate = vipInfo ? vipInfo.dailyRate : 0;
+      if (rate === 0) { showToast('Invalid VIP rate.', true); return; }
+
+      isClaiming = true;
+      claimTodayBtn.disabled = true;
+      claimTodayBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Processing...';
+
+      window.open('https://t.me/swiftduel', '_blank');
+
+      try {
+        const newBalance = (userData.taskBalance || 0) + rate;
+        const newDays = daysLeft - 1;
+        await db.ref('users/' + currentUser.uid).update({
+          taskBalance: newBalance,
+          lastClaimDate: today,
+          contractDaysRemaining: newDays
+        });
+        await db.ref('ledger').push({
+          uid: currentUser.uid,
+          title: `📈 Daily VIP Claim (₦${rate}) - VIP ${userData.vipLevel}`,
+          amount: rate,
+          type: 'credit',
+          timestamp: Date.now()
+        });
+        showToast('✅ Claimed ₦' + rate + ' (Daily Rate)!');
+        const snap = await db.ref('users/' + currentUser.uid).once('value');
+        if (snap.exists()) {
+          userData = snap.val();
+          updateDashboard(userData);
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, true);
+      } finally {
+        isClaiming = false;
+        claimTodayBtn.disabled = false;
+        if (userData && userData.lastClaimDate === getTodayStr()) {
+          claimTodayBtn.innerHTML = '<i class="fa-solid fa-check-circle"></i> Already Claimed';
+          claimTodayBtn.disabled = true;
+        } else {
+          claimTodayBtn.innerHTML = '<i class="fa-solid fa-hand-holding-usd"></i> Claim Today';
+        }
+      }
+    });
+
+    // ============================================================
+    // CHECK-IN (₦50 Bonus)
+    // ============================================================
+    async function handleCheckIn() {
+      if (isMaintenance) {
+        showToast('Platform is under maintenance. Check‑in disabled.', true);
+        return;
+      }
+      if (checkinCooldown) return;
+      if (!currentUser || !userData) {
+        showToast('Please login first.', true);
+        return;
+      }
+      if (userData.vipLevel === 0) {
+        showToast('Check‑in bonus is only available for VIP users.', true);
+        return;
+      }
+      if (userData.status === 'banned') {
+        showToast('Account suspended.', true);
+        return;
+      }
+      const today = getTodayStr();
+      if (userData.lastAttendanceClaimDate === today) {
+        showToast('You already claimed your check‑in bonus today.', true);
+        return;
+      }
+      try {
+        const newBalance = (userData.taskBalance || 0) + 50;
+        await db.ref('users/' + currentUser.uid).update({
+          taskBalance: newBalance,
+          lastAttendanceClaimDate: today
+        });
+        await db.ref('ledger').push({
+          uid: currentUser.uid,
+          title: `✅ Check-in Bonus (₦50)`,
+          amount: 50,
+          type: 'credit',
+          timestamp: Date.now()
+        });
+        showToast('✅ Check‑in bonus ₦50 added!');
+        checkinCooldown = true;
+        setTimeout(() => checkinCooldown = false, 5000);
+      } catch (e) {
+        showToast('Error checking in.', true);
+      }
+    }
+
+    // ============================================================
+    // COPY REFERRAL LINK
+    // ============================================================
+    copyLinkBtn.addEventListener('click', async () => {
+      const text = inviteLinkText.textContent;
+      try { await navigator.clipboard.writeText(text); showToast('✅ Link copied!'); }
+      catch (e) { const ta = document.createElement('textarea'); ta.value = text; document.body.appendChild(ta); ta.select(); document.execCommand('copy'); ta.remove(); showToast('✅ Link copied!'); }
+    });
+
+    // ============================================================
+    // SAVE BANK
+    // ============================================================
+    document.getElementById('saveBankBtn').addEventListener('click', async function() {
+      if (!currentUser) return;
+      const bank = document.getElementById('inputBankName').value;
+      const holder = document.getElementById('inputBankHolderName').value.trim();
+      const num = document.getElementById('inputBankNumber').value.trim();
+      if (!bank || !holder || num.length !== 10) {
+        showToast('Please fill all bank fields correctly.', true);
+        return;
+      }
+      try {
+        await db.ref('users/' + currentUser.uid).update({ bankName: bank, accountName: holder, accountNumber: num });
+        showToast('✅ Bank details saved (one‑time).');
+        const snap = await db.ref('users/' + currentUser.uid).once('value');
+        if (snap.exists()) { userData = snap.val(); updateDashboard(userData); }
+      } catch (e) { showToast('Error saving bank details.', true); }
+    });
+
+    // ============================================================
+    // VIP UPGRADE
+    // ============================================================
+    async function handleUpgrade() {
+      if (isMaintenance) {
+        showToast('Platform under maintenance. Upgrades disabled.', true);
+        return;
+      }
+      if (!currentUser || !userData) { showToast('Please login first.', true); return; }
+      if (userData.status === 'banned') { showToast('Account suspended.', true); return; }
+      const tier = parseInt(this.dataset.tier);
+      const cost = parseInt(this.dataset.cost);
+      const name = this.dataset.name;
+      const yieldAmt = parseInt(this.dataset.yield);
+
+      if (userData.vipLevel >= tier) { showToast('You already have this plan or higher.', true); return; }
+      const balance = (userData.taskBalance || 0) + (userData.referralBalance || 0);
+      if (balance < cost) { showToast('Insufficient balance! Need ₦' + cost.toLocaleString(), true); return; }
+
+      let confirmResult;
+      try {
+        confirmResult = await Swal.fire({
+          title: 'Confirm Upgrade',
+          text: 'This will deduct ₦' + cost.toLocaleString() + ' from your balance.',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#1a6bff',
+          cancelButtonColor: '#e53e3e',
+          confirmButtonText: 'Upgrade Now',
+          background: '#122a3a',
+          color: '#eef4ff'
+        });
+      } catch (e) {
+        confirmResult = { isConfirmed: confirm(`Upgrade to ${name} for ₦${cost.toLocaleString()}?`) };
+      }
+      if (!confirmResult.isConfirmed) return;
+
+      let remaining = cost;
+      let newTask = userData.taskBalance || 0;
+      let newRef = userData.referralBalance || 0;
+      if (newTask >= remaining) { newTask -= remaining; }
+      else { remaining -= newTask; newTask = 0; newRef -= remaining; if (newRef < 0) newRef = 0; }
+
+      try {
+        await db.ref('users/' + currentUser.uid).update({
+          vipLevel: tier,
+          vipUpgradedAt: Date.now(),
+          taskBalance: newTask,
+          referralBalance: newRef,
+          contractDaysRemaining: 365,
+          activeDailyYield: yieldAmt
+        });
+        await db.ref('ledger').push({
+          uid: currentUser.uid,
+          title: '🚀 Activated ' + name,
+          amount: -cost,
+          type: 'debit',
+          timestamp: Date.now()
+        });
+
+        // Referral logic
+        const refsSnap = await db.ref('referrals').orderByChild('referredUid').equalTo(currentUser.uid).once('value');
+        if (refsSnap.exists()) {
+          const data = refsSnap.val();
+          for (const [key, ref] of Object.entries(data)) {
+            if (ref.status === 'pending') {
+              const commission45 = Math.floor(cost * 0.45);
+              await db.ref('referrals/' + key).update({
+                status: 'pending_claim',
+                vipPurchaseAmount: cost,
+                commission: commission45,
+                referredName: userData.name || 'User'
+              });
+              const referrerSnap = await db.ref('users/' + ref.referrerUid).once('value');
+              const referrerName = referrerSnap.exists() ? referrerSnap.val().name || 'User' : 'User';
+              showToast('🎁 Your referrer (' + referrerName + ') has a pending claim of ₦' + commission45.toLocaleString() + '!');
+            }
+          }
+          // Lvl 2
+          for (const [key, ref] of Object.entries(data)) {
+            if (ref.status === 'pending_claim' || ref.status === 'claimed') {
+              const referrerSnap = await db.ref('users/' + ref.referrerUid).once('value');
+              if (referrerSnap.exists()) {
+                const referrerUser = referrerSnap.val();
+                if (referrerUser.referredBy) {
+                  const lvl2Code = referrerUser.referredBy;
+                  const lvl2UserSnap = await db.ref('users').orderByChild('referralCode').equalTo(lvl2Code).once('value');
+                  if (lvl2UserSnap.exists()) {
+                    const lvl2Uid = Object.keys(lvl2UserSnap.val())[0];
+                    const lvl2RefsSnap = await db.ref('referrals').orderByChild('referredUid').equalTo(ref.referrerUid).once('value');
+                    if (lvl2RefsSnap.exists()) {
+                      const lvl2Data = lvl2RefsSnap.val();
+                      for (const [lvl2Key, lvl2Ref] of Object.entries(lvl2Data)) {
+                        if (lvl2Ref.referrerUid === lvl2Uid && lvl2Ref.status === 'pending') {
+                          const commission5 = Math.floor(cost * 0.05);
+                          await db.ref('referrals/' + lvl2Key).update({
+                            status: 'pending_claim',
+                            vipPurchaseAmount: cost,
+                            commission: commission5,
+                            referredName: referrerUser.name || 'User'
+                          });
+                          showToast('🎁 Your Lvl 2 upline has a pending claim of ₦' + commission5.toLocaleString() + '!');
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+
+        showToast('✅ Upgraded to ' + name + '!');
+        const userSnapRefresh = await db.ref('users/' + currentUser.uid).once('value');
+        if (userSnapRefresh.exists()) {
+          userData = userSnapRefresh.val();
+          updateDashboard(userData);
+        }
+      } catch (e) {
+        console.error('Upgrade error:', e);
+        showToast('Error upgrading: ' + e.message, true);
+      }
+    }
+
+    // ============================================================
+    // VOUCHER REDEMPTION – WITH 5‑SECOND AUTO‑CLOSE
+    // ============================================================
+    claimVoucherBtn.addEventListener('click', async function() {
+      if (isMaintenance) {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Platform under maintenance. Vouchers disabled.</span>';
+        return;
+      }
+      if (isRedeeming) return;
+
+      // Clear any previous timer
+      if (voucherCloseTimer) {
+        clearTimeout(voucherCloseTimer);
+        voucherCloseTimer = null;
+      }
+
+      const code = voucherCodeField.value.trim().toUpperCase();
+      if (!code) {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Please enter a voucher code.</span>';
+        // Still close after 5 seconds (but we need to ensure the timer starts)
+        // Actually, we should only start the timer after they click, even if validation fails.
+        // But we want to show the error for a moment before closing.
+        // We'll start the timer regardless.
+      }
+
+      // Start 5‑second timer to clear input and close modal
+      voucherCloseTimer = setTimeout(() => {
+        voucherCodeField.value = '';
+        closeModal('voucherModal');
+        voucherCloseTimer = null;
+      }, 5000);
+
+      // Proceed with validation
+      if (!code) {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Please enter a voucher code.</span>';
+        // Don't run the rest, but timer will close it.
+        // But we must mark isRedeeming? We'll just return but keep timer.
+        return;
+      }
+      if (code.length !== 6) {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Code must be exactly 6 characters.</span>';
+        return;
+      }
+      if (!currentUser || !userData) {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Please login first.</span>';
+        return;
+      }
+      if (userData.vipLevel === 0) {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ VIP 1+ required to redeem vouchers.</span>';
+        return;
+      }
+      if (userData.status === 'banned') {
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Account suspended.</span>';
+        return;
+      }
+
+      isRedeeming = true;
+      claimVoucherBtn.disabled = true;
+      claimVoucherBtn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Verifying...';
+      voucherFeedback.innerHTML = '<span style="color:#fbbf24;">⏳ Checking voucher...</span>';
+
+      try {
+        const snap = await db.ref('giftCards').orderByChild('code').equalTo(code).once('value');
+
+        if (!snap.exists()) {
+          voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Invalid voucher code.</span>';
+          claimVoucherBtn.disabled = false;
+          claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+          isRedeeming = false;
+          return;
+        }
+
+        let voucherKey = null;
+        let voucherData = null;
+        snap.forEach(child => { voucherKey = child.key; voucherData = child.val(); });
+
+        if (!voucherData || voucherData.status !== 'active') {
+          voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ This voucher is no longer active.</span>';
+          claimVoucherBtn.disabled = false;
+          claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+          isRedeeming = false;
+          return;
+        }
+
+        if (voucherData.expiry) {
+          const expiryDate = new Date(voucherData.expiry);
+          if (expiryDate < new Date()) {
+            voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ This voucher has expired.</span>';
+            claimVoucherBtn.disabled = false;
+            claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+            isRedeeming = false;
+            return;
+          }
+        }
+
+        const usedBy = voucherData.usedBy || [];
+        const alreadyClaimed = usedBy.some(entry => {
+          if (typeof entry === 'string') return entry === currentUser.uid;
+          return entry.uid === currentUser.uid;
+        });
+        if (alreadyClaimed) {
+          voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ You have already redeemed this voucher.</span>';
+          claimVoucherBtn.disabled = false;
+          claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+          isRedeeming = false;
+          return;
+        }
+
+        const distribution = voucherData.distribution || [];
+        const currentIndex = voucherData.usedCount || 0;
+        if (currentIndex >= distribution.length) {
+          voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ This voucher has been fully claimed.</span>';
+          claimVoucherBtn.disabled = false;
+          claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+          isRedeeming = false;
+          return;
+        }
+
+        const claimAmount = distribution[currentIndex]?.amount || 0;
+        if (claimAmount <= 0) {
+          voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Invalid claim amount.</span>';
+          claimVoucherBtn.disabled = false;
+          claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+          isRedeeming = false;
+          return;
+        }
+
+        // Proceed with claiming
+        const newBalance = (userData.taskBalance || 0) + claimAmount;
+        const newUsedBy = [...usedBy, { uid: currentUser.uid, username: userData.name || 'User', amount: claimAmount }];
+        const newUsedCount = currentIndex + 1;
+        const newStatus = newUsedCount >= distribution.length ? 'fully_claimed' : 'active';
+
+        await db.ref('users/' + currentUser.uid).update({ taskBalance: newBalance });
+        await db.ref('giftCards/' + voucherKey).update({
+          usedBy: newUsedBy,
+          usedCount: newUsedCount,
+          status: newStatus
+        });
+        await db.ref('ledger').push({
+          uid: currentUser.uid,
+          title: `🎫 Voucher Claim: ${code}`,
+          amount: claimAmount,
+          type: 'credit',
+          timestamp: Date.now()
+        });
+
+        voucherFeedback.innerHTML = `<span style="color:#10b981;">✅ Success! ₦${claimAmount.toLocaleString()} added to your Task Wallet.</span>`;
+        showToast('✅ Voucher redeemed! ₦' + claimAmount.toLocaleString() + ' added!');
+
+        const userSnap = await db.ref('users/' + currentUser.uid).once('value');
+        if (userSnap.exists()) {
+          userData = userSnap.val();
+          updateDashboard(userData);
+        }
+
+        claimVoucherBtn.disabled = false;
+        claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+
+      } catch (error) {
+        console.error('Voucher redemption error:', error);
+        voucherFeedback.innerHTML = '<span style="color:#ef4444;">❌ Error processing voucher. Please try again.</span>';
+        claimVoucherBtn.disabled = false;
+        claimVoucherBtn.innerHTML = '<i class="fa-solid fa-gift"></i> Verify & Claim';
+      } finally {
+        isRedeeming = false;
+        // The 5‑second timer will close the modal, regardless of success/failure.
+        // We already set the timer at the beginning.
+      }
+    });
+
+    // ============================================================
+    // REFRESH BUTTON
+    // ============================================================
+    refreshBtn.addEventListener('click', async function() {
+      if (!currentUser) return;
+      refreshIcon.classList.add('fa-spin');
+      refreshBtn.disabled = true;
+      try {
+        const snap = await db.ref('users/' + currentUser.uid).once('value');
+        if (snap.exists()) {
+          userData = snap.val();
+          updateDashboard(userData);
+          showToast('✅ Data refreshed!');
+        }
+      } catch (e) {
+        showToast('Error refreshing.', true);
+      } finally {
+        refreshIcon.classList.remove('fa-spin');
+        refreshBtn.disabled = false;
+      }
+    });
+
+    // ============================================================
+    // LOGOUT
+    // ============================================================
+    document.getElementById('logoutBtn').addEventListener('click', async () => {
+      let confirmResult;
+      try {
+        confirmResult = await Swal.fire({
+          title: 'Logout?',
+          text: 'Are you sure you want to sign out?',
+          icon: 'question',
+          showCancelButton: true,
+          confirmButtonColor: '#e53e3e',
+          cancelButtonColor: '#1a6bff',
+          confirmButtonText: 'Yes, Logout',
+          cancelButtonText: 'Cancel',
+          background: '#122a3a',
+          color: '#eef4ff'
+        });
+      } catch (e) {
+        confirmResult = { isConfirmed: confirm('Logout?') };
+      }
+      if (confirmResult.isConfirmed) {
+        if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+        await auth.signOut();
+        showToast('Logged out.');
+        setTimeout(() => window.location.href = 'index.html', 1000);
+      }
+    });
+
+    // ============================================================
+    // POLLING
+    // ============================================================
+    function startPolling() {
+      if (pollInterval) { clearInterval(pollInterval); }
+      pollInterval = setInterval(async () => {
+        if (!currentUser) return;
+        try {
+          const snap = await db.ref('users/' + currentUser.uid).once('value');
+          if (snap.exists()) {
+            const freshData = snap.val();
+            if (JSON.stringify(freshData) !== JSON.stringify(userData)) {
+              userData = freshData;
+              updateDashboard(userData);
+            }
+          }
+        } catch (e) { /* silent fail */ }
+      }, 2000);
+    }
+
+    // ============================================================
+    // MAINTENANCE LISTENER
+    // ============================================================
+    function listenMaintenance() {
+      db.ref('settings/maintenance').on('value', snap => {
+        const val = snap.val();
+        isMaintenance = val === true;
+        if (isMaintenance) {
+          maintenanceBanner.classList.add('show');
+        } else {
+          maintenanceBanner.classList.remove('show');
+        }
+        if (userData) updateDashboard(userData);
+      });
+    }
+
+    // ============================================================
+    // AUTH STATE OBSERVER
+    // ============================================================
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+
+        const cached = loadCache();
+        if (cached && cached.uid === user.uid) {
+          updateDashboard(cached);
+          userData = cached;
+        }
+
+        const userRef = db.ref('users/' + user.uid);
+        userRef.on('value', snap => {
+          if (snap.exists()) {
+            const freshData = snap.val();
+            userData = freshData;
+            updateDashboard(freshData);
+            saveCache(freshData);
+            if (isFirstLoad) {
+              isFirstLoad = false;
+              startPolling();
+            }
+          } else {
+            showToast('Account data missing.', true);
+            setTimeout(() => window.location.href = 'index.html', 1500);
+          }
+        });
+
+        db.ref('adminSettings').on('value', snap => {
+          if (snap.exists()) {
+            adminSettings = snap.val();
+          }
+        });
+
+        listenMaintenance();
+
+      } else {
+        if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+        window.location.href = 'index.html';
+      }
+    });
+
+    console.log('✅ SwiftDuel dashboard ready – voucher auto‑closes after 5 seconds.');
+  </script>
+</body>
+</html>

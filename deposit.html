@@ -1,0 +1,1929 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+    <title>SwiftDuel – Deposit & Upgrade VIP</title>
+
+    <!-- Fonts & Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+    <style>
+        /* ============================================================
+           GLOBAL RESET & BASE
+           ============================================================ */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background-color: #f0f4ff;
+            color: #1a2a3a;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            padding-bottom: 40px;
+            transition: background-color 0.3s ease, color 0.2s ease;
+        }
+
+        body.light-mode {
+            background-color: #f0f4ff !important;
+            color: #1a2a3a;
+        }
+        body.light-mode .app-container {
+            background: #ffffff;
+        }
+        body.light-mode .top-bar {
+            background: #ffffff;
+            border-bottom-color: #e0e8f4;
+        }
+        body.light-mode .top-bar .brand span {
+            color: #1a3a6a;
+        }
+        body.light-mode .deposit-card {
+            background: #ffffff;
+            border-color: #e0e8f4;
+        }
+        body.light-mode .vip-select-card {
+            background: #f8faff;
+            border-color: #e0e8f4;
+        }
+        body.light-mode .vip-select-card.selected {
+            border-color: #1a6bff;
+            background: #eef4ff;
+        }
+        body.light-mode .bank-details-box {
+            background: #f8faff;
+            border-color: #dce4f0;
+        }
+        body.light-mode .bank-details-box .acc-number {
+            color: #1a2a3a;
+        }
+        body.light-mode .narration-box {
+            background: #f0f4ff;
+            border-color: #d0dcec;
+        }
+        body.light-mode .narration-box .code-value {
+            color: #1a6bff;
+        }
+        body.light-mode .input-row label {
+            color: #4a6a8a;
+        }
+        body.light-mode .input-row input,
+        body.light-mode .input-row select {
+            background: #ffffff;
+            border-color: #dce4f0;
+            color: #1a2a3a;
+        }
+        body.light-mode .section-headline {
+            color: #1a2a3a;
+        }
+        body.light-mode .section-subline {
+            color: #6a8a9a;
+        }
+        body.light-mode .mini-history-item {
+            border-bottom-color: #e0e8f4;
+        }
+        body.light-mode .mini-history-item .code {
+            color: #1a6bff;
+        }
+        body.light-mode .footer .links a {
+            color: #1a2a3a;
+        }
+        body.light-mode .toast-notification {
+            background: #1a2a3a;
+            color: #fff;
+        }
+        body.light-mode .copy-btn {
+            background: rgba(26, 107, 255, 0.08);
+            color: #1a6bff;
+        }
+        body.light-mode .copy-btn:hover {
+            background: rgba(26, 107, 255, 0.16);
+        }
+        body.light-mode .copy-btn.copied {
+            background: #10b981;
+            color: #fff;
+        }
+        body.light-mode .disclaimer-box {
+            background: #f0f7ff;
+            border-color: #b3d4fc;
+            color: #1a3a6a;
+        }
+        body.light-mode .disclaimer-box i {
+            color: #1a6bff;
+        }
+        body.light-mode .amount-display {
+            background: linear-gradient(135deg, #1a6bff, #1555cc);
+            color: #fff;
+        }
+
+        body.dark-mode {
+            background-color: #0a1a2a !important;
+            color: #eef4ff;
+        }
+        body.dark-mode .app-container {
+            background: #122a3a;
+        }
+        body.dark-mode .top-bar {
+            background: #122a3a;
+            border-bottom-color: #2a4a5a;
+        }
+        body.dark-mode .top-bar .brand span {
+            color: #ffffff;
+        }
+        body.dark-mode .top-bar .brand span .red {
+            color: #ff6b6b;
+        }
+        body.dark-mode .deposit-card {
+            background: #1a2a3a;
+            border-color: #2a4a5a;
+        }
+        body.dark-mode .vip-select-card {
+            background: #1a2a3a;
+            border-color: #2a4a5a;
+        }
+        body.dark-mode .vip-select-card.selected {
+            border-color: #1a6bff;
+            background: #0a1a2a;
+        }
+        body.dark-mode .vip-select-card .price {
+            color: #1a6bff;
+        }
+        body.dark-mode .vip-select-card .daily {
+            color: #10b981;
+        }
+        body.dark-mode .bank-details-box {
+            background: #0a1a2a;
+            border-color: #2a4a5a;
+        }
+        body.dark-mode .bank-details-box .acc-number {
+            color: #eef4ff;
+        }
+        body.dark-mode .narration-box {
+            background: #0a1a2a;
+            border-color: #2a4a5a;
+        }
+        body.dark-mode .narration-box .code-value {
+            color: #1a6bff;
+        }
+        body.dark-mode .input-row label {
+            color: #8aaabc;
+        }
+        body.dark-mode .input-row input,
+        body.dark-mode .input-row select {
+            background: #0a1a2a;
+            border-color: #2a4a5a;
+            color: #eef4ff;
+        }
+        body.dark-mode .section-headline {
+            color: #eef4ff;
+        }
+        body.dark-mode .section-subline {
+            color: #8aaabc;
+        }
+        body.dark-mode .mini-history-item {
+            border-bottom-color: #2a4a5a;
+        }
+        body.dark-mode .mini-history-item .code {
+            color: #1a6bff;
+        }
+        body.dark-mode .footer .links a {
+            color: #8aaabc;
+        }
+        body.dark-mode .footer .links a:hover {
+            color: #1a6bff;
+        }
+        body.dark-mode .toast-notification {
+            background: #1a2a3a;
+            border-left-color: #1a6bff;
+        }
+        body.dark-mode .toast-notification .toast-msg {
+            color: #eef4ff;
+        }
+        body.dark-mode .copy-btn {
+            background: rgba(26, 107, 255, 0.12);
+            color: #1a6bff;
+        }
+        body.dark-mode .copy-btn:hover {
+            background: rgba(26, 107, 255, 0.22);
+        }
+        body.dark-mode .copy-btn.copied {
+            background: #10b981;
+            color: #fff;
+        }
+        body.dark-mode .disclaimer-box {
+            background: #1a2a3a;
+            border-color: #2a4a5a;
+            color: #8aaabc;
+        }
+        body.dark-mode .disclaimer-box i {
+            color: #1a6bff;
+        }
+        body.dark-mode .dark-toggle {
+            background: rgba(26, 107, 255, 0.15);
+            border-color: rgba(26, 107, 255, 0.3);
+            color: #1a6bff;
+        }
+        body.dark-mode .dark-toggle:hover {
+            background: rgba(26, 107, 255, 0.25);
+        }
+        body.dark-mode .amount-display {
+            background: linear-gradient(135deg, #1a6bff, #1555cc);
+            color: #fff;
+        }
+
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #dce4f0;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1a6bff;
+            border-radius: 4px;
+        }
+        body.dark-mode ::-webkit-scrollbar-track {
+            background: #1a2a3a;
+        }
+        body.dark-mode ::-webkit-scrollbar-thumb {
+            background: #1a6bff;
+        }
+
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            min-height: 100vh;
+            background: #ffffff;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            box-shadow: 0 0 30px rgba(0, 40, 80, 0.08);
+            transition: background 0.3s ease;
+        }
+
+        @keyframes float {
+            0%,
+            100% {
+                transform: translateY(0px);
+            }
+            50% {
+                transform: translateY(-6px);
+            }
+        }
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+        @keyframes fadeSlideUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+        @keyframes shimmer {
+            0% {
+                background-position: -200% 0;
+            }
+            100% {
+                background-position: 200% 0;
+            }
+        }
+        @keyframes pulse {
+            0%,
+            100% {
+                opacity: 1;
+            }
+            50% {
+                opacity: 0.6;
+            }
+        }
+
+        .top-bar {
+            width: 100%;
+            padding: 14px 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 1px solid #e0e8f4;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            background: #ffffff;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .top-bar .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            text-decoration: none;
+        }
+        .top-bar .brand i {
+            color: #1a6bff;
+            font-size: 1.4rem;
+            animation: float 3s ease-in-out infinite;
+        }
+        .top-bar .brand span {
+            font-size: 1.1rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            color: #1a3a6a;
+        }
+        .top-bar .brand span .red {
+            color: #e53e3e;
+        }
+        .top-bar .actions {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+        .top-bar .back-link {
+            color: #1a6bff;
+            text-decoration: none;
+            font-weight: 700;
+            font-size: 0.8rem;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+        .top-bar .back-link:hover {
+            gap: 8px;
+        }
+
+        .dark-toggle {
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            background: rgba(26, 107, 255, 0.08);
+            border: 1px solid rgba(26, 107, 255, 0.2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            color: #1a6bff;
+            transition: all 0.3s;
+            font-size: 0.9rem;
+        }
+        .dark-toggle:hover {
+            background: rgba(26, 107, 255, 0.15);
+            transform: scale(1.05);
+        }
+
+        .app-workspace {
+            flex-grow: 1;
+            padding: 20px;
+        }
+
+        .section-headline {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .section-headline i {
+            color: #1a6bff;
+        }
+        .section-subline {
+            font-size: 0.75rem;
+            margin-bottom: 16px;
+            color: #6a8a9a;
+            line-height: 1.4;
+        }
+
+        /* ===== DISCLAIMER ===== */
+        .disclaimer-box {
+            border-radius: 14px;
+            padding: 14px 16px;
+            border: 1px solid #b3d4fc;
+            background: #f0f7ff;
+            color: #1a3a6a;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            font-size: 0.7rem;
+            line-height: 1.5;
+            transition: background 0.3s, border-color 0.3s, color 0.3s;
+        }
+        .disclaimer-box i {
+            color: #1a6bff;
+            font-size: 1.1rem;
+            margin-top: 2px;
+            flex-shrink: 0;
+        }
+        .disclaimer-box strong {
+            font-weight: 800;
+        }
+
+        /* ===== VIP SELECTION ===== */
+        .vip-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+        .vip-select-card {
+            border-radius: 14px;
+            padding: 14px 8px;
+            text-align: center;
+            border: 2px solid #e0e8f4;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: #f8faff;
+            position: relative;
+        }
+        .vip-select-card:hover {
+            transform: translateY(-3px);
+            border-color: rgba(26, 107, 255, 0.3);
+        }
+        .vip-select-card.selected {
+            border-color: #1a6bff;
+            background: #eef4ff;
+            box-shadow: 0 4px 12px rgba(26, 107, 255, 0.15);
+        }
+        .vip-select-card .tier {
+            font-weight: 700;
+            font-size: 0.7rem;
+            display: block;
+            color: #1a6bff;
+        }
+        .vip-select-card .price {
+            font-weight: 800;
+            font-size: 0.9rem;
+            color: #1a6bff;
+            display: block;
+            margin: 2px 0;
+        }
+        .vip-select-card .daily {
+            font-size: 0.6rem;
+            color: #10b981;
+            font-weight: 600;
+            display: block;
+        }
+        .vip-select-card .check-mark {
+            display: none;
+            color: #1a6bff;
+            font-size: 1rem;
+            margin-top: 2px;
+        }
+        .vip-select-card.selected .check-mark {
+            display: block;
+        }
+        .vip-select-card .popular-badge {
+            position: absolute;
+            top: -8px;
+            right: -8px;
+            background: #e53e3e;
+            color: #fff;
+            font-size: 0.45rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+            font-weight: 700;
+            text-transform: uppercase;
+        }
+        .vip-select-card .total-return {
+            font-size: 0.5rem;
+            color: #6a8a9a;
+            display: block;
+            margin-top: 2px;
+        }
+
+        /* ===== AMOUNT DISPLAY ===== */
+        .amount-display {
+            border-radius: 14px;
+            padding: 16px;
+            text-align: center;
+            margin: 12px 0 18px 0;
+            color: #fff;
+            background: linear-gradient(135deg, #1a6bff, #1555cc);
+            position: relative;
+            overflow: hidden;
+        }
+        .amount-display::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -30%;
+            width: 150%;
+            height: 150%;
+            background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 70%);
+            pointer-events: none;
+        }
+        .amount-display .amount-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            opacity: 0.85;
+            letter-spacing: 0.5px;
+        }
+        .amount-display .amount-value {
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: 1px;
+        }
+        .amount-display .amount-plan {
+            font-size: 0.75rem;
+            opacity: 0.9;
+            margin-top: 2px;
+        }
+
+        /* ===== BANK DETAILS ===== */
+        .bank-details-box {
+            background: #f8faff;
+            border-radius: 16px;
+            padding: 18px;
+            border: 1px solid #dce4f0;
+            margin-bottom: 16px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .bank-details-box .paystack-badge {
+            display: inline-block;
+            background: #1a6bff;
+            color: #fff;
+            font-size: 0.55rem;
+            font-weight: 700;
+            padding: 2px 14px;
+            border-radius: 20px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            margin-bottom: 12px;
+        }
+        .bank-details-box .bank-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.04);
+        }
+        .bank-details-box .bank-row:last-child {
+            border-bottom: none;
+        }
+        .bank-details-box .bank-row .label {
+            font-size: 0.65rem;
+            color: #6a8a9a;
+            text-transform: uppercase;
+            font-weight: 600;
+        }
+        .bank-details-box .bank-row .value {
+            font-weight: 700;
+            font-size: 0.85rem;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .bank-details-box .acc-number {
+            font-size: 1.2rem;
+            font-weight: 800;
+            letter-spacing: 2px;
+        }
+        .bank-details-box .opay-note {
+            margin-top: 10px;
+            font-size: 0.65rem;
+            color: #e53e3e;
+            background: rgba(229, 62, 62, 0.06);
+            padding: 8px 12px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .bank-details-box .opay-note i {
+            font-size: 0.8rem;
+        }
+
+        /* ===== COPY BUTTON ===== */
+        .copy-btn {
+            background: rgba(26, 107, 255, 0.08);
+            border: none;
+            border-radius: 6px;
+            padding: 2px 10px;
+            font-size: 0.6rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+            color: #1a6bff;
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            white-space: nowrap;
+        }
+        .copy-btn:hover {
+            background: rgba(26, 107, 255, 0.16);
+            transform: scale(1.02);
+        }
+        .copy-btn.copied {
+            background: #10b981;
+            color: #fff;
+        }
+        .copy-btn.copied:hover {
+            background: #059669;
+        }
+
+        /* ===== NARRATION BOX ===== */
+        .narration-box {
+            background: #f0f4ff;
+            border-radius: 16px;
+            padding: 16px;
+            border: 1px dashed #d0dcec;
+            text-align: center;
+            margin-bottom: 16px;
+            transition: background 0.3s, border-color 0.3s;
+        }
+        .narration-box .code-label {
+            font-size: 0.6rem;
+            text-transform: uppercase;
+            color: #6a8a9a;
+            letter-spacing: 0.5px;
+        }
+        .narration-box .code-value {
+            font-size: 1.6rem;
+            font-weight: 900;
+            font-family: 'Inter', monospace;
+            letter-spacing: 4px;
+            color: #1a6bff;
+            margin: 4px 0;
+            word-break: break-all;
+        }
+        .narration-box .code-actions {
+            display: flex;
+            justify-content: center;
+            gap: 12px;
+            margin-top: 6px;
+            flex-wrap: wrap;
+        }
+        .narration-box .code-actions button {
+            background: rgba(26, 107, 255, 0.08);
+            border: 1px solid rgba(26, 107, 255, 0.15);
+            color: #1a6bff;
+            padding: 4px 16px;
+            border-radius: 30px;
+            font-size: 0.65rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s;
+        }
+        .narration-box .code-actions button:hover {
+            background: rgba(26, 107, 255, 0.15);
+            transform: scale(1.02);
+        }
+        .narration-box .code-actions button:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        /* ===== TIMER ===== */
+        .timer-display {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: #1a6bff;
+            margin: 6px 0 12px 0;
+        }
+        .timer-display .time-value {
+            font-size: 1.4rem;
+            font-family: 'Inter', monospace;
+            background: rgba(0, 0, 0, 0.04);
+            padding: 2px 18px;
+            border-radius: 10px;
+            min-width: 70px;
+            text-align: center;
+        }
+        .timer-display.expired .time-value {
+            color: #e53e3e;
+        }
+        .timer-warning {
+            background: rgba(229, 62, 62, 0.06);
+            border: 1px solid rgba(229, 62, 62, 0.2);
+            border-radius: 10px;
+            padding: 10px;
+            text-align: center;
+            font-size: 0.7rem;
+            color: #e53e3e;
+            display: none;
+            margin-bottom: 12px;
+        }
+        .timer-warning.active {
+            display: block;
+        }
+
+        /* ===== INPUT ROWS ===== */
+        .input-row {
+            margin-bottom: 14px;
+        }
+        .input-row label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            font-weight: 700;
+            display: block;
+            margin-bottom: 4px;
+        }
+        .input-row label .required {
+            color: #e53e3e;
+        }
+        .input-row input,
+        .input-row select {
+            width: 100%;
+            padding: 10px;
+            border-radius: 10px;
+            border: 1px solid #dce4f0;
+            font-size: 0.9rem;
+            transition: 0.2s;
+            background: #ffffff;
+        }
+        .input-row input:focus,
+        .input-row select:focus {
+            border-color: #1a6bff;
+            outline: none;
+            box-shadow: 0 0 0 3px rgba(26, 107, 255, 0.06);
+        }
+        .input-row .hint {
+            font-size: 0.6rem;
+            color: #6a8a9a;
+            margin-top: 4px;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .input-row .name-fields {
+            display: grid;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+        }
+        .input-row .name-fields input {
+            padding: 8px;
+            font-size: 0.8rem;
+        }
+
+        /* ===== SUBMIT BUTTON ===== */
+        .btn-submit {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            background: linear-gradient(135deg, #1a6bff, #1555cc);
+            color: #fff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            box-shadow: 0 4px 14px rgba(26, 107, 255, 0.2);
+            margin-top: 4px;
+        }
+        .btn-submit:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 6px 20px rgba(26, 107, 255, 0.3);
+        }
+        .btn-submit:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            transform: none;
+        }
+        .btn-submit .spinner-small {
+            width: 20px;
+            height: 20px;
+            border: 2px solid #fff;
+            border-top-color: transparent;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            display: inline-block;
+        }
+
+        /* ===== MINI HISTORY ===== */
+        .mini-history {
+            margin-top: 20px;
+            border-top: 1px solid #e0e8f4;
+            padding-top: 16px;
+        }
+        .mini-history .mini-title {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            color: #6a8a9a;
+            font-weight: 700;
+            margin-bottom: 10px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .mini-history .mini-title i {
+            color: #1a6bff;
+        }
+        .mini-history-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 8px 0;
+            border-bottom: 1px solid #e0e8f4;
+            font-size: 0.7rem;
+        }
+        .mini-history-item:last-child {
+            border-bottom: none;
+        }
+        .mini-history-item .code {
+            font-family: 'Inter', monospace;
+            font-weight: 700;
+            color: #1a6bff;
+            font-size: 0.6rem;
+        }
+        .mini-history-item .status {
+            font-weight: 700;
+            text-transform: uppercase;
+            font-size: 0.55rem;
+            padding: 2px 8px;
+            border-radius: 20px;
+        }
+        .status-pending {
+            background: rgba(229, 184, 66, 0.15);
+            color: #e5b842;
+        }
+        .status-approved {
+            background: rgba(16, 185, 129, 0.15);
+            color: #10b981;
+        }
+        .status-rejected {
+            background: rgba(239, 68, 68, 0.15);
+            color: #ef4444;
+        }
+        .status-completed {
+            background: rgba(16, 185, 129, 0.10);
+            color: #10b981;
+        }
+
+        /* ===== FOOTER ===== */
+        .footer {
+            padding: 24px 20px 10px;
+            border-top: 1px solid rgba(0, 0, 0, 0.04);
+            text-align: center;
+            margin-top: 10px;
+        }
+        .footer .logo-small {
+            font-weight: 900;
+            font-size: 0.9rem;
+            color: #1a6bff;
+            letter-spacing: 1px;
+        }
+        .footer p {
+            font-size: 0.6rem;
+            color: #6a8a9a;
+            margin-top: 6px;
+            line-height: 1.4;
+        }
+        .footer .links {
+            display: flex;
+            justify-content: center;
+            gap: 18px;
+            margin-top: 10px;
+            flex-wrap: wrap;
+        }
+        .footer .links a {
+            color: #4a6a8a;
+            text-decoration: none;
+            font-size: 0.65rem;
+            transition: color 0.2s;
+        }
+        .footer .links a:hover {
+            color: #1a6bff;
+        }
+
+        /* ===== TOAST ===== */
+        .toast-notification {
+            position: fixed;
+            top: 25px;
+            left: 50%;
+            transform: translateX(-50%) translateY(-120px);
+            width: calc(100% - 32px);
+            max-width: 400px;
+            background: #1a2a3a;
+            border-left: 4px solid #1a6bff;
+            padding: 15px;
+            border-radius: 10px;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            z-index: 9999;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .toast-notification.show {
+            transform: translateX(-50%) translateY(0);
+        }
+        .toast-notification i {
+            font-size: 1.2rem;
+        }
+        .toast-notification .toast-msg {
+            font-size: 0.85rem;
+            font-weight: 600;
+            flex: 1;
+        }
+
+        /* ===== PAYSTACK LOADER ===== */
+        .paystack-loader {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(255, 255, 255, 0.92);
+            backdrop-filter: blur(8px);
+            z-index: 30000;
+            display: none;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 20px;
+        }
+        .paystack-loader.active {
+            display: flex;
+        }
+        .paystack-loader .loader-icon {
+            width: 70px;
+            height: 70px;
+            border-radius: 50%;
+            background: #1a6bff;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-bottom: 20px;
+            font-size: 2rem;
+            color: #fff;
+            box-shadow: 0 8px 30px rgba(26, 107, 255, 0.25);
+            animation: pulse 1.5s infinite;
+        }
+        .paystack-loader .loader-text {
+            font-size: 1.1rem;
+            font-weight: 800;
+            margin-bottom: 4px;
+        }
+        .paystack-loader .loader-sub {
+            font-size: 0.8rem;
+        }
+        .paystack-loader .loader-bar {
+            width: 200px;
+            height: 4px;
+            background: #dce4f0;
+            border-radius: 4px;
+            margin-top: 16px;
+            overflow: hidden;
+        }
+        .paystack-loader .loader-bar .bar-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #1a6bff, #1555cc);
+            border-radius: 4px;
+            width: 0%;
+            transition: width 0.3s ease;
+            animation: shimmer 1.5s infinite;
+            background-size: 200% 100%;
+        }
+
+        /* ===== RESPONSIVE ===== */
+        @media (max-width: 420px) {
+            .vip-grid {
+                grid-template-columns: 1fr 1fr 1fr;
+                gap: 6px;
+            }
+            .vip-select-card {
+                padding: 10px 4px;
+            }
+            .vip-select-card .price {
+                font-size: 0.75rem;
+            }
+            .vip-select-card .tier {
+                font-size: 0.6rem;
+            }
+            .vip-select-card .daily {
+                font-size: 0.5rem;
+            }
+            .bank-details-box .acc-number {
+                font-size: 1rem;
+            }
+            .narration-box .code-value {
+                font-size: 1.2rem;
+                letter-spacing: 2px;
+            }
+            .amount-display .amount-value {
+                font-size: 1.5rem;
+            }
+            .input-row .name-fields {
+                grid-template-columns: 1fr 1fr;
+            }
+            .top-bar .brand span {
+                font-size: 0.9rem;
+            }
+            .disclaimer-box {
+                font-size: 0.65rem;
+                padding: 12px;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- ===== PAYSTACK-STYLE LOADER ===== -->
+    <div class="paystack-loader" id="paystackLoader">
+        <div class="loader-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+        <div class="loader-text">Processing your deposit...</div>
+        <div class="loader-sub">Please wait, we're submitting your request</div>
+        <div class="loader-bar"><div class="bar-fill" id="loaderBarFill"></div></div>
+    </div>
+
+    <!-- ===== TOAST ===== -->
+    <div class="toast-notification" id="customToast">
+        <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+        <div class="toast-msg" id="toastMsg">Ready</div>
+    </div>
+
+    <!-- ===== APP CONTAINER ===== -->
+    <div class="app-container">
+
+        <!-- ---- HEADER ---- -->
+        <header class="top-bar">
+            <a href="dashboard.html" class="back-link"><i class="fa-solid fa-chevron-left"></i> Dashboard</a>
+            <div class="brand">
+                <i class="fa-solid fa-bolt"></i>
+                <span>Swift<span class="red">Duel</span></span>
+            </div>
+            <div class="actions">
+                <div class="dark-toggle" id="darkModeToggle" title="Toggle dark/light mode">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
+            </div>
+        </header>
+
+        <!-- ---- WORKSPACE ---- -->
+        <div class="app-workspace">
+
+            <h2 class="section-headline"><i class="fa-solid fa-circle-plus"></i> Upgrade VIP</h2>
+            <p class="section-subline">Select a VIP plan, pay via bank transfer, and get upgraded after admin approval.</p>
+
+            <!-- ===== DISCLAIMER ===== -->
+            <div class="disclaimer-box">
+                <i class="fa-solid fa-shield-halved"></i>
+                <div>
+                    <strong>🔒 Secure Deposit:</strong> All deposits are verified by admin. Include your <strong>narration code</strong>
+                    in the transfer description. Deposits are processed within 24 hours. <strong>Do not test</strong> – fraudulent
+                    deposits will result in a permanent ban.
+                </div>
+            </div>
+
+            <!-- ============================================================
+            STEP 1: SELECT VIP PLAN
+            ============================================================ -->
+            <h3 style="font-size:0.85rem; font-weight:700; margin-bottom:10px;">Choose Your Plan</h3>
+            <div class="vip-grid" id="vipGrid"></div>
+
+            <!-- ============================================================
+            STEP 2: DEPOSIT FORM (hidden until VIP selected)
+            ============================================================ -->
+            <div id="depositFormSection" style="display:none;">
+
+                <!-- AMOUNT DISPLAY -->
+                <div class="amount-display" id="amountDisplay">
+                    <div class="amount-label">Amount to Pay</div>
+                    <div class="amount-value" id="amountDisplayValue">₦0</div>
+                    <div class="amount-plan" id="amountDisplayPlan">VIP 0</div>
+                </div>
+
+                <!-- Bank Details -->
+                <div class="bank-details-box">
+                    <div class="paystack-badge"><i class="fa-solid fa-lock"></i> Pay with Transfer</div>
+                    <div class="bank-row">
+                        <span class="label">Bank</span>
+                        <span class="value" id="bankNameDisplay">PalmPay
+                            <button class="copy-btn" id="copyBankBtn"><i class="fa-regular fa-copy"></i> Copy</button>
+                        </span>
+                    </div>
+                    <div class="bank-row">
+                        <span class="label">Account Number</span>
+                        <span class="value acc-number" id="bankAccountDisplay">8962925124
+                            <button class="copy-btn" id="copyAccountBtn"><i class="fa-regular fa-copy"></i> Copy</button>
+                        </span>
+                    </div>
+                    <div class="bank-row">
+                        <span class="label">Account Name</span>
+                        <span class="value" id="bankNameFullDisplay">NEXUS EARN LIMITED (TAIWO)
+                            <button class="copy-btn" id="copyNameBtn"><i class="fa-regular fa-copy"></i> Copy</button>
+                        </span>
+                    </div>
+                    <div class="opay-note">
+                        <i class="fa-solid fa-triangle-exclamation"></i>
+                        <span><strong>Note:</strong> On OPay and some banks, the name may appear as <strong>"NEXUS(TAIWO)"</strong> – it's the same account.</span>
+                    </div>
+                </div>
+
+                <!-- Narration Code -->
+                <div class="narration-box">
+                    <div class="code-label"><i class="fa-solid fa-key"></i> Your Unique Narration Code</div>
+                    <div class="code-value" id="narrationCodeDisplay">------</div>
+                    <div style="font-size:0.55rem; color:#6a8a9a; margin-bottom:4px;">Include this code in your transfer description</div>
+                    <div class="code-actions">
+                        <button id="copyNarrationBtn"><i class="fa-regular fa-copy"></i> Copy Code</button>
+                        <button id="regenerateNarrationBtn"><i class="fa-solid fa-arrows-rotate"></i> Regenerate</button>
+                    </div>
+                </div>
+
+                <!-- Timer -->
+                <div class="timer-display" id="timerDisplay">
+                    <i class="fa-regular fa-hourglass-half"></i>
+                    <span class="time-value" id="timerValue">05:00</span>
+                </div>
+                <div class="timer-warning" id="timerWarning">
+                    <i class="fa-solid fa-triangle-exclamation"></i> Your narration code has expired. Please regenerate.
+                </div>
+
+                <!-- Deposit Form -->
+                <div id="depositForm">
+                    <input type="hidden" id="depositAmount" />
+
+                    <!-- SENDER NAME -->
+                    <div class="input-row">
+                        <label>Sender Full Name <span class="required">*</span></label>
+                        <div class="name-fields">
+                            <input type="text" id="firstName" placeholder="First Name" required />
+                            <input type="text" id="middleName" placeholder="Middle (optional)" />
+                            <input type="text" id="lastName" placeholder="Last (optional)" />
+                        </div>
+                        <div class="hint"><i class="fa-solid fa-info-circle"></i> First name is required.</div>
+                    </div>
+
+                    <!-- SENDER BANK -->
+                    <div class="input-row">
+                        <label>Sender's Bank <span class="required">*</span></label>
+                        <select id="senderBank" required>
+                            <option value="">Select your bank</option>
+                            <option value="OPay">OPay</option>
+                            <option value="PalmPay">PalmPay</option>
+                            <option value="GTBank">GTBank</option>
+                            <option value="Access Bank">Access Bank</option>
+                            <option value="Zenith Bank">Zenith Bank</option>
+                            <option value="UBA">UBA</option>
+                            <option value="First Bank">First Bank</option>
+                            <option value="Fidelity Bank">Fidelity Bank</option>
+                            <option value="Union Bank">Union Bank</option>
+                            <option value="Kuda Bank">Kuda Bank</option>
+                            <option value="Moniepoint">Moniepoint</option>
+                            <option value="Sterling Bank">Sterling Bank</option>
+                            <option value="Ecobank">Ecobank</option>
+                            <option value="Stanbic IBTC">Stanbic IBTC</option>
+                            <option value="Wema Bank">Wema Bank</option>
+                            <option value="Heritage Bank">Heritage Bank</option>
+                            <option value="Keystone Bank">Keystone Bank</option>
+                            <option value="Jaiz Bank">Jaiz Bank</option>
+                            <option value="Suntrust Bank">Suntrust Bank</option>
+                            <option value="Providus Bank">Providus Bank</option>
+                            <option value="Titan Trust Bank">Titan Trust Bank</option>
+                            <option value="Globus Bank">Globus Bank</option>
+                            <option value="Premium Trust Bank">Premium Trust Bank</option>
+                            <option value="Other">Other</option>
+                        </select>
+                    </div>
+
+                    <!-- SENDER ACCOUNT NUMBER -->
+                    <div class="input-row">
+                        <label>Sender Account Number <span class="required">*</span></label>
+                        <input type="text" id="senderAccount" placeholder="Enter 10-digit account number" maxlength="10" required />
+                        <div class="hint"><i class="fa-solid fa-info-circle"></i> We use this to confirm your identity.</div>
+                    </div>
+
+                    <button class="btn-submit" id="submitDepositBtn">
+                        <i class="fa-solid fa-paper-plane"></i> Submit Deposit Request
+                    </button>
+                </div>
+
+                <!-- Mini History -->
+                <div class="mini-history" id="miniHistoryContainer">
+                    <div class="mini-title"><i class="fa-solid fa-clock-rotate-left"></i> Your Recent Deposit Requests</div>
+                    <div id="miniHistoryList">
+                        <div style="text-align:center;padding:8px 0;font-size:0.65rem;color:#6a8a9a;">
+                            <i class="fa-solid fa-spinner fa-pulse"></i> Loading...
+                        </div>
+                    </div>
+                </div>
+
+                <!-- ===== ADDITIONAL INFO ===== -->
+                <div style="margin-top:20px; border-top:1px solid #e0e8f4; padding-top:16px;">
+                    <div style="font-size:0.65rem; color:#6a8a9a; line-height:1.6;">
+                        <p><i class="fa-regular fa-clock" style="color:#f59e0b;"></i> <strong>Processing time:</strong> Deposits are verified within 24 hours.</p>
+                        <p><i class="fa-regular fa-shield" style="color:#1a6bff;"></i> <strong>Security:</strong> All deposits are tracked via your narration code.</p>
+                        <p><i class="fa-regular fa-circle-check" style="color:#10b981;"></i> <strong>Once approved:</strong> Your VIP plan is activated instantly.</p>
+                    </div>
+                </div>
+
+            </div> <!-- end depositFormSection -->
+
+        </div> <!-- end workspace -->
+
+        <!-- ---- FOOTER ---- -->
+        <footer class="footer">
+            <div class="logo-small">SwiftDuel</div>
+            <p>© 2026 SwiftDuel. All rights reserved.<br />Licensed &amp; secure.</p>
+            <div class="links">
+                <a href="https://t.me/swiftduel" target="_blank"><i class="fa-brands fa-telegram"></i> Telegram</a>
+                <a href="#" onclick="alert('Coming soon!')">Privacy</a>
+                <a href="#" onclick="alert('Coming soon!')">Terms</a>
+            </div>
+        </footer>
+
+    </div> <!-- end app-container -->
+
+
+    <!-- ============================================================
+    JAVASCRIPT – FULL DEPOSIT LOGIC WITH CACHE & COPY
+    ============================================================ -->
+    <script>
+        // ============================================================
+        // FIREBASE CONFIG
+        // ============================================================
+        const firebaseConfig = {
+            apiKey: "AIzaSyDQ3uDQ2h61dDNeRowTpItGgrZridn3s40",
+            authDomain: "swiftduel.firebaseapp.com",
+            databaseURL: "https://swiftduel-default-rtdb.firebaseio.com",
+            projectId: "swiftduel",
+            storageBucket: "swiftduel.firebasestorage.app",
+            messagingSenderId: "114652592444",
+            appId: "1:114652592444:web:19ce34c0a6af62c4de0639"
+        };
+        if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+        const auth = firebase.auth();
+        const db = firebase.database();
+
+        // ============================================================
+        // TELEGRAM CONFIG
+        // ============================================================
+        const BOT_TOKEN = "8805425061:AAFiR5VN0RQ7UeBzedGYQ5E1_Wa3j-Q4ED4";
+        const ADMIN_CHAT_ID = "8966823502";
+
+        // ============================================================
+        // VIP PACKAGES
+        // ============================================================
+        const VIP_PACKAGES = [
+            { level: 1, price: 500, dailyRate: 50 },
+            { level: 2, price: 1000, dailyRate: 100 },
+            { level: 3, price: 2500, dailyRate: 300 },
+            { level: 4, price: 4000, dailyRate: 500 },
+            { level: 5, price: 5500, dailyRate: 700 },
+            { level: 6, price: 7500, dailyRate: 1000 },
+            { level: 7, price: 10000, dailyRate: 1500 },
+            { level: 8, price: 13000, dailyRate: 2100 },
+            { level: 9, price: 16500, dailyRate: 3000 }
+        ];
+
+        // ============================================================
+        // GLOBALS
+        // ============================================================
+        let currentUser = null;
+        let userData = null;
+        let selectedVipLevel = null;
+        let currentNarrationCode = '';
+        let timerInterval = null;
+        let timerSeconds = 300;
+        let isSubmitting = false;
+        let isFirstLoad = true;
+        let pollInterval = null;
+
+        // Cache
+        const CACHE_KEY = 'swiftduel_deposit_cache';
+        let cachedData = null;
+
+        // ============================================================
+        // DOM REFS
+        // ============================================================
+        const vipGrid = document.getElementById('vipGrid');
+        const depositFormSection = document.getElementById('depositFormSection');
+        const narrationCodeDisplay = document.getElementById('narrationCodeDisplay');
+        const timerValue = document.getElementById('timerValue');
+        const timerWarning = document.getElementById('timerWarning');
+        const timerDisplay = document.getElementById('timerDisplay');
+        const copyNarrationBtn = document.getElementById('copyNarrationBtn');
+        const regenNarrationBtn = document.getElementById('regenerateNarrationBtn');
+        const submitBtn = document.getElementById('submitDepositBtn');
+        const miniHistoryList = document.getElementById('miniHistoryList');
+        const firstName = document.getElementById('firstName');
+        const middleName = document.getElementById('middleName');
+        const lastName = document.getElementById('lastName');
+        const senderBank = document.getElementById('senderBank');
+        const senderAccount = document.getElementById('senderAccount');
+        const depositAmountHidden = document.getElementById('depositAmount');
+        const amountDisplayValue = document.getElementById('amountDisplayValue');
+        const amountDisplayPlan = document.getElementById('amountDisplayPlan');
+        const paystackLoader = document.getElementById('paystackLoader');
+        const loaderBarFill = document.getElementById('loaderBarFill');
+
+        // Copy buttons
+        const copyAccountBtn = document.getElementById('copyAccountBtn');
+        const copyBankBtn = document.getElementById('copyBankBtn');
+        const copyNameBtn = document.getElementById('copyNameBtn');
+
+        const toast = document.getElementById('customToast');
+        const toastMsg = document.getElementById('toastMsg');
+        const darkToggle = document.getElementById('darkModeToggle');
+
+        // ============================================================
+        // CACHE HELPERS
+        // ============================================================
+        function loadCache() {
+            try {
+                const raw = localStorage.getItem(CACHE_KEY);
+                if (raw) {
+                    cachedData = JSON.parse(raw);
+                    return cachedData;
+                }
+            } catch (e) { /* ignore */ }
+            return null;
+        }
+
+        function saveCache(data) {
+            try {
+                localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+            } catch (e) { /* ignore */ }
+        }
+
+        // ============================================================
+        // TOAST
+        // ============================================================
+        function showToast(msg, isError = false) {
+            const icon = toast.querySelector('i');
+            icon.className = isError ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+            icon.style.color = isError ? '#ef4444' : '#10b981';
+            toastMsg.innerText = msg;
+            toast.classList.add('show');
+            clearTimeout(toast._timer);
+            toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
+        }
+
+        // ============================================================
+        // PAYSTACK LOADER
+        // ============================================================
+        function showPaystackLoader() {
+            paystackLoader.classList.add('active');
+            let progress = 0;
+            const interval = setInterval(() => {
+                progress += Math.random() * 8 + 2;
+                if (progress >= 100) { progress = 100;
+                    clearInterval(interval); }
+                loaderBarFill.style.width = progress + '%';
+            }, 200);
+            return interval;
+        }
+
+        function hidePaystackLoader() {
+            paystackLoader.classList.remove('active');
+            loaderBarFill.style.width = '0%';
+        }
+
+        // ============================================================
+        // TELEGRAM
+        // ============================================================
+        async function sendTelegramMessage(message) {
+            try {
+                const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+                await fetch(url, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        chat_id: ADMIN_CHAT_ID,
+                        text: message,
+                        parse_mode: 'Markdown'
+                    })
+                });
+            } catch (e) { console.warn('Telegram notification failed:', e); }
+        }
+
+        // ============================================================
+        // DARK MODE
+        // ============================================================
+        (function() {
+            const saved = localStorage.getItem('swiftTheme');
+            if (saved === 'dark') {
+                document.body.classList.add('dark-mode');
+                document.body.classList.remove('light-mode');
+                darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+            } else {
+                document.body.classList.add('light-mode');
+                document.body.classList.remove('dark-mode');
+                darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+            }
+            darkToggle.addEventListener('click', function() {
+                const isDark = document.body.classList.toggle('dark-mode');
+                document.body.classList.toggle('light-mode');
+                if (isDark) {
+                    darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                    localStorage.setItem('swiftTheme', 'dark');
+                } else {
+                    darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                    localStorage.setItem('swiftTheme', 'light');
+                }
+            });
+        })();
+
+        // ============================================================
+        // GENERATE NARRATION CODE
+        // ============================================================
+        function generateNarrationCode() {
+            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+            let code = '';
+            for (let i = 0; i < 10; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+            return code;
+        }
+
+        // ============================================================
+        // SET NEW CODE & TIMER
+        // ============================================================
+        function setNewNarrationCode() {
+            if (timerInterval) { clearInterval(timerInterval);
+                timerInterval = null; }
+            currentNarrationCode = generateNarrationCode();
+            narrationCodeDisplay.textContent = currentNarrationCode;
+            timerSeconds = 300;
+            updateTimerDisplay();
+            timerWarning.classList.remove('active');
+            timerDisplay.classList.remove('expired');
+            timerInterval = setInterval(() => {
+                timerSeconds--;
+                updateTimerDisplay();
+                if (timerSeconds <= 0) {
+                    clearInterval(timerInterval);
+                    timerInterval = null;
+                    timerDisplay.classList.add('expired');
+                    timerWarning.classList.add('active');
+                }
+            }, 1000);
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(timerSeconds / 60);
+            const secs = timerSeconds % 60;
+            timerValue.textContent = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+        }
+
+        // ============================================================
+        // COPY FUNCTIONS
+        // ============================================================
+        function copyText(text, btnElement) {
+            if (!text || text === 'Not set' || text === '------') {
+                showToast('Nothing to copy.', true);
+                return;
+            }
+            const rawText = text.replace(/Copy$/, '').trim();
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(rawText).then(() => {
+                    setCopiedState(btnElement);
+                }).catch(() => fallbackCopy(rawText, btnElement));
+            } else {
+                fallbackCopy(rawText, btnElement);
+            }
+        }
+
+        function fallbackCopy(text, btn) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.style.position = 'fixed';
+            ta.style.opacity = '0';
+            document.body.appendChild(ta);
+            ta.select();
+            try {
+                document.execCommand('copy');
+                setCopiedState(btn);
+            } catch (e) {
+                showToast('Could not copy. Please copy manually.', true);
+            }
+            document.body.removeChild(ta);
+        }
+
+        function setCopiedState(btn) {
+            const originalText = btn.innerHTML;
+            btn.classList.add('copied');
+            const icon = btn.querySelector('i');
+            if (icon) {
+                icon.className = 'fa-solid fa-check';
+            }
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Copied!';
+            showToast('✅ Copied!');
+            setTimeout(() => {
+                btn.classList.remove('copied');
+                btn.innerHTML = originalText;
+            }, 2500);
+        }
+
+        // ---- Setup copy buttons ----
+        copyAccountBtn.addEventListener('click', function() {
+            copyText('8962925124', this);
+        });
+        copyBankBtn.addEventListener('click', function() {
+            copyText('PalmPay', this);
+        });
+        copyNameBtn.addEventListener('click', function() {
+            copyText('NEXUS EARN LIMITED (TAIWO)', this);
+        });
+
+        copyNarrationBtn.addEventListener('click', function() {
+            if (currentNarrationCode && currentNarrationCode !== '------') {
+                copyText(currentNarrationCode, this);
+            } else {
+                showToast('No code generated yet.', true);
+            }
+        });
+
+        regenNarrationBtn.addEventListener('click', function() {
+            if (timerSeconds > 0 && timerInterval) {
+                Swal.fire({
+                    title: 'Regenerate Code?',
+                    text: 'This will expire your current code and start a new 5-minute timer.',
+                    icon: 'question',
+                    showCancelButton: true,
+                    confirmButtonColor: '#1a6bff',
+                    cancelButtonColor: '#e53e3e',
+                    confirmButtonText: 'Yes, regenerate',
+                    cancelButtonText: 'Cancel',
+                    background: '#122a3a',
+                    color: '#eef4ff'
+                }).then(result => {
+                    if (result.isConfirmed) { setNewNarrationCode();
+                        showToast('✅ New code generated!'); }
+                });
+            } else {
+                setNewNarrationCode();
+                showToast('✅ New code generated!');
+            }
+        });
+
+        // ============================================================
+        // RENDER VIP PLANS
+        // ============================================================
+        function renderVIPPlans() {
+            let html = '';
+            VIP_PACKAGES.forEach((pkg) => {
+                const total = pkg.dailyRate * 365;
+                const isPopular = pkg.level === 3 || pkg.level === 5 || pkg.level === 7;
+                html += `
+                            <div class="vip-select-card" data-level="${pkg.level}" onclick="selectVIP(${pkg.level})">
+                                ${isPopular ? '<span class="popular-badge">Popular</span>' : ''}
+                                <span class="tier">VIP ${pkg.level}</span>
+                                <span class="price">₦${pkg.price.toLocaleString()}</span>
+                                <span class="daily">+ ₦${pkg.dailyRate}/day</span>
+                                <span class="total-return">Total: ₦${total.toLocaleString()}</span>
+                                <div class="check-mark"><i class="fa-solid fa-circle-check"></i></div>
+                            </div>
+                        `;
+            });
+            vipGrid.innerHTML = html;
+        }
+        renderVIPPlans();
+
+        // ============================================================
+        // SELECT VIP
+        // ============================================================
+        window.selectVIP = function(level) {
+            document.querySelectorAll('.vip-select-card').forEach(el => {
+                el.classList.toggle('selected', parseInt(el.dataset.level) === level);
+            });
+            selectedVipLevel = level;
+            const pkg = VIP_PACKAGES.find(p => p.level === level);
+            if (!pkg) return;
+
+            depositFormSection.style.display = 'block';
+            depositAmountHidden.value = pkg.price;
+            amountDisplayValue.textContent = '₦' + pkg.price.toLocaleString();
+            amountDisplayPlan.textContent = 'VIP ' + pkg.level + ' – ₦' + pkg.dailyRate + '/day';
+
+            if (timerInterval) { clearInterval(timerInterval);
+                timerInterval = null; }
+            setNewNarrationCode();
+
+            depositFormSection.scrollIntoView({ behavior: 'smooth' });
+            showToast(`Selected VIP ${level} – ₦${pkg.price.toLocaleString()}`, false);
+        };
+
+        // ============================================================
+        // LOAD MINI HISTORY
+        // ============================================================
+        async function loadMiniHistory(uid) {
+            try {
+                const q = await db.ref('deposits').orderByChild('uid').equalTo(uid).once('value');
+                if (!q.exists()) {
+                    miniHistoryList.innerHTML = `
+                                <div style="text-align:center;padding:8px 0;font-size:0.65rem;color:#6a8a9a;">
+                                    <i class="fa-regular fa-folder-open"></i> No deposit requests yet.
+                                </div>
+                            `;
+                    return;
+                }
+                const items = [];
+                q.forEach(child => {
+                    const data = child.val();
+                    items.push({ ...data, id: child.key, _date: data.timestamp || 0 });
+                });
+                items.sort((a, b) => b._date - a._date);
+                const recent = items.slice(0, 6);
+
+                let html = '';
+                recent.forEach(item => {
+                    const status = item.status || 'pending';
+                    const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+                    const statusClass = `status-${status}`;
+                    const date = item._date ? new Date(item._date).toLocaleDateString() : 'Unknown';
+                    const code = item.narrationCode || '----';
+                    const amount = item.amount || 0;
+                    const vip = item.vipLevel || '?';
+                    html += `
+                                <div class="mini-history-item">
+                                    <div>
+                                        <span>₦${amount.toLocaleString()}</span>
+                                        <span style="color:#6a8a9a;font-size:0.6rem;margin-left:6px;">VIP ${vip}</span>
+                                        <span style="color:#6a8a9a;font-size:0.55rem;margin-left:4px;">${date}</span>
+                                        <span class="code" style="display:block;font-size:0.55rem;">${code}</span>
+                                    </div>
+                                    <span class="status ${statusClass}">${statusText}</span>
+                                </div>
+                            `;
+                });
+                miniHistoryList.innerHTML = html;
+            } catch (e) {
+                console.error('Mini history error:', e);
+                miniHistoryList.innerHTML = `
+                            <div style="text-align:center;padding:8px 0;font-size:0.65rem;color:#ef4444;">
+                                <i class="fa-solid fa-circle-exclamation"></i> Error loading history.
+                            </div>
+                        `;
+            }
+        }
+
+        // ============================================================
+        // SUBMIT DEPOSIT
+        // ============================================================
+        submitBtn.addEventListener('click', async function() {
+            if (isSubmitting) return;
+            if (!currentUser || !userData) {
+                showToast('Please login first.', true);
+                return;
+            }
+            if (!selectedVipLevel) {
+                showToast('Please select a VIP plan first.', true);
+                return;
+            }
+            if (!currentNarrationCode || timerSeconds <= 0) {
+                showToast('Your narration code has expired. Please regenerate.', true);
+                return;
+            }
+
+            const fName = firstName.value.trim();
+            const mName = middleName.value.trim();
+            const lName = lastName.value.trim();
+            const bank = senderBank.value;
+            const acc = senderAccount.value.trim();
+
+            const nameParts = [fName];
+            if (mName) nameParts.push(mName);
+            if (lName) nameParts.push(lName);
+            const fullName = nameParts.join(' ');
+
+            if (!fName || fName.length < 2) {
+                showToast('Please enter your first name (minimum 2 characters).', true);
+                return;
+            }
+            if (!bank) {
+                showToast('Please select your bank.', true);
+                return;
+            }
+            if (!acc || acc.length !== 10 || !/^\d+$/.test(acc)) {
+                showToast('Please enter a valid 10-digit account number.', true);
+                return;
+            }
+
+            const pkg = VIP_PACKAGES.find(p => p.level === selectedVipLevel);
+            if (!pkg) { showToast('Invalid VIP plan.', true); return; }
+
+            // ---- CONFIRMATION ----
+            const result = await Swal.fire({
+                title: 'Confirm Deposit Request',
+                html: `
+                            <div style="text-align:left;">
+                                <p><strong>VIP Plan:</strong> VIP ${pkg.level}</p>
+                                <p><strong>Amount:</strong> ₦${pkg.price.toLocaleString()}</p>
+                                <p><strong>Narration Code:</strong> <span style="color:#1a6bff;font-weight:700;font-family:monospace;">${currentNarrationCode}</span></p>
+                                <p><strong>Sender:</strong> ${fullName}</p>
+                                <p><strong>Bank:</strong> ${bank}</p>
+                                <p><strong>Account Number:</strong> ${acc}</p>
+                                <hr style="border-color:rgba(239,68,68,0.2);margin:12px 0;" />
+                                <p style="color:#ef4444;font-weight:700;font-size:0.8rem;">
+                                    <i class="fa-solid fa-triangle-exclamation"></i> WARNING: Fraudulent deposits will result in a permanent ban.
+                                </p>
+                            </div>
+                        `,
+                icon: 'warning',
+                background: '#122a3a',
+                color: '#eef4ff',
+                confirmButtonColor: '#10b981',
+                cancelButtonColor: '#e53e3e',
+                showCancelButton: true,
+                confirmButtonText: '✅ Yes, Submit',
+                cancelButtonText: 'Cancel'
+            });
+            if (!result.isConfirmed) return;
+
+            isSubmitting = true;
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<div class="spinner-small"></div> Submitting...';
+
+            const loaderInterval = showPaystackLoader();
+
+            try {
+                await db.ref('deposits').push({
+                    uid: currentUser.uid,
+                    username: userData.name || 'User',
+                    email: currentUser.email,
+                    amount: pkg.price,
+                    vipLevel: selectedVipLevel,
+                    narrationCode: currentNarrationCode,
+                    senderName: fullName,
+                    senderBank: bank,
+                    senderAccount: acc,
+                    status: 'pending',
+                    timestamp: Date.now()
+                });
+
+                // Telegram
+                const telegramMsg = `
+                            🔔 *NEW DEPOSIT REQUEST*
+
+                            *USER:* ${userData.name || 'User'} (VIP ${userData.vipLevel || 0})
+                            *AMOUNT:* ₦${pkg.price.toLocaleString()}
+                            *NARRATION CODE:* \`${currentNarrationCode}\`
+
+                            *SENDER DETAILS:*
+                            Name: ${fullName}
+                            Bank: ${bank}
+                            Account: ${acc}
+
+                            *STATUS:* ⏳ PENDING
+                        `;
+                await sendTelegramMessage(telegramMsg);
+
+                clearInterval(loaderInterval);
+                loaderBarFill.style.width = '100%';
+                await new Promise(resolve => setTimeout(resolve, 600));
+                hidePaystackLoader();
+
+                await Swal.fire({
+                    title: '✅ Deposit Request Submitted!',
+                    html: `
+                                <div style="text-align:left;">
+                                    <p><strong>VIP Plan:</strong> VIP ${pkg.level}</p>
+                                    <p><strong>Amount:</strong> ₦${pkg.price.toLocaleString()}</p>
+                                    <p><strong>Narration Code:</strong> <span style="color:#1a6bff;font-weight:700;font-family:monospace;">${currentNarrationCode}</span></p>
+                                    <p><strong>Sender Name:</strong> ${fullName}</p>
+                                    <div style="background:rgba(26,107,255,0.1);padding:12px;border-radius:8px;margin-top:12px;">
+                                        <p style="color:#1a6bff;font-weight:700;">⏳ Status: PENDING</p>
+                                        <p style="font-size:0.7rem;color:#6a8a9a;">Admin has been notified via Telegram.</p>
+                                        <p style="font-size:0.7rem;color:#6a8a9a;">They will verify and approve your deposit within 24 hours.</p>
+                                    </div>
+                                </div>
+                            `,
+                    icon: 'success',
+                    background: '#122a3a',
+                    color: '#eef4ff',
+                    confirmButtonColor: '#1a6bff',
+                    timer: 6000
+                });
+
+                firstName.value = '';
+                middleName.value = '';
+                lastName.value = '';
+                senderBank.value = '';
+                senderAccount.value = '';
+                document.querySelectorAll('.vip-select-card').forEach(el => el.classList.remove('selected'));
+                selectedVipLevel = null;
+                depositFormSection.style.display = 'none';
+                if (timerInterval) { clearInterval(timerInterval);
+                    timerInterval = null; }
+                loadMiniHistory(currentUser.uid);
+
+            } catch (error) {
+                console.error('Deposit submit error:', error);
+                hidePaystackLoader();
+                showToast('Error submitting deposit. Please try again.', true);
+            } finally {
+                isSubmitting = false;
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Submit Deposit Request';
+            }
+        });
+
+        // ============================================================
+        // POLLING (1 second) – silent background sync
+        // ============================================================
+        function startPolling() {
+            if (pollInterval) { clearInterval(pollInterval); }
+            pollInterval = setInterval(async () => {
+                if (!currentUser) return;
+                try {
+                    const snap = await db.ref('users/' + currentUser.uid).once('value');
+                    if (snap.exists()) {
+                        const freshData = snap.val();
+                        if (JSON.stringify(freshData) !== JSON.stringify(userData)) {
+                            userData = freshData;
+                            // Update UI if needed
+                            saveCache({
+                                uid: currentUser.uid,
+                                name: userData.name,
+                                vipLevel: userData.vipLevel,
+                                status: userData.status,
+                                bankName: userData.bankName,
+                                accountName: userData.accountName,
+                                accountNumber: userData.accountNumber,
+                                phone: userData.phone,
+                                timestamp: Date.now()
+                            });
+                            // Refresh history silently
+                            loadMiniHistory(currentUser.uid);
+                        }
+                    }
+                } catch (e) { /* silent fail */ }
+            }, 1000);
+        }
+
+        // ============================================================
+        // AUTH STATE OBSERVER – instant from cache, then background
+        // ============================================================
+        auth.onAuthStateChanged(user => {
+            if (user) {
+                currentUser = user;
+
+                // 1. Load from cache instantly
+                const cached = loadCache();
+                if (cached && cached.uid === user.uid) {
+                    userData = {
+                        name: cached.name || 'User',
+                        vipLevel: cached.vipLevel || 0,
+                        status: cached.status || 'active',
+                        bankName: cached.bankName || 'Not set',
+                        accountName: cached.accountName || 'Not set',
+                        accountNumber: cached.accountNumber || 'Not set',
+                        phone: cached.phone || 'N/A'
+                    };
+                }
+
+                // 2. Fetch fresh data in background
+                const userRef = db.ref('users/' + user.uid);
+                userRef.on('value', snap => {
+                    if (snap.exists()) {
+                        userData = snap.val();
+                        saveCache({
+                            uid: user.uid,
+                            name: userData.name,
+                            vipLevel: userData.vipLevel,
+                            status: userData.status,
+                            bankName: userData.bankName,
+                            accountName: userData.accountName,
+                            accountNumber: userData.accountNumber,
+                            phone: userData.phone,
+                            timestamp: Date.now()
+                        });
+                        loadMiniHistory(user.uid);
+                        if (isFirstLoad) {
+                            isFirstLoad = false;
+                            startPolling();
+                        }
+                    } else {
+                        showToast('Account data missing.', true);
+                        setTimeout(() => window.location.href = 'index.html', 1500);
+                    }
+                });
+            } else {
+                if (pollInterval) { clearInterval(pollInterval);
+                    pollInterval = null; }
+                window.location.href = 'index.html';
+            }
+        });
+
+        console.log('✅ SwiftDuel deposit page ready – cache + 1s polling, full copy support.');
+    </script>
+
+</body>
+</html>

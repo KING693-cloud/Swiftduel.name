@@ -1,0 +1,1914 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
+
+  <title>SwiftDuel – Withdraw Earnings</title>
+
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css" />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    body {
+      background-color: #f0f4ff;
+      color: #1a2a3a;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      padding-bottom: 40px;
+      transition: background-color 0.3s ease, color 0.2s ease;
+    }
+
+    body.light-mode {
+      background-color: #f0f4ff !important;
+      color: #1a2a3a;
+    }
+    body.light-mode .app-container { background: #ffffff; }
+    body.light-mode .top-bar { background: #ffffff; border-bottom-color: #e0e8f4; }
+    body.light-mode .top-bar .brand span { color: #1a3a6a; }
+    body.light-mode .withdraw-card { background: #ffffff; border-color: #e0e8f4; }
+    body.light-mode .wallet-tab { background: #f8faff; border-color: #e0e8f4; color: #4a6a8a; }
+    body.light-mode .wallet-tab.active { background: #1a6bff; color: #fff; border-color: #1a6bff; }
+    body.light-mode .info-box { background: #f8faff; border-color: #dce4f0; }
+    body.light-mode .bank-details-box { background: #f8faff; border-color: #dce4f0; }
+    body.light-mode .input-row label { color: #4a6a8a; }
+    body.light-mode .input-row input { background: #ffffff; border-color: #dce4f0; color: #1a2a3a; }
+    body.light-mode .section-headline { color: #1a2a3a; }
+    body.light-mode .section-subline { color: #6a8a9a; }
+    body.light-mode .mini-history-item { border-bottom-color: #e0e8f4; }
+    body.light-mode .footer .links a { color: #1a2a3a; }
+    body.light-mode .toast-notification { background: #1a2a3a; color: #fff; }
+    body.light-mode .balance-display .balance-amount { color: #fff; }
+    body.light-mode .disclaimer-box { background: #f0f7ff; border-color: #b3d4fc; color: #1a3a6a; }
+    body.light-mode .disclaimer-box i { color: #1a6bff; }
+    body.light-mode .vip-required-banner { background: #fef3c7; border-color: #f59e0b; color: #92400e; }
+    body.light-mode .vip-required-banner i { color: #f59e0b; }
+    body.light-mode .transfer-btn { background: #8b5cf6; color: #fff; }
+    body.light-mode .transfer-btn:hover { background: #7c3aed; }
+    body.light-mode .transfer-btn:disabled { background: #6b7280; }
+
+    body.dark-mode {
+      background-color: #0a1a2a !important;
+      color: #eef4ff;
+    }
+    body.dark-mode .app-container { background: #122a3a; }
+    body.dark-mode .top-bar { background: #122a3a; border-bottom-color: #2a4a5a; }
+    body.dark-mode .top-bar .brand span { color: #ffffff; }
+    body.dark-mode .top-bar .brand span .red { color: #ff6b6b; }
+    body.dark-mode .withdraw-card { background: #1a2a3a; border-color: #2a4a5a; }
+    body.dark-mode .wallet-tab { background: #0a1a2a; border-color: #2a4a5a; color: #8aaabc; }
+    body.dark-mode .wallet-tab.active { background: #1a6bff; color: #fff; border-color: #1a6bff; }
+    body.dark-mode .info-box { background: #0a1a2a; border-color: #2a4a5a; }
+    body.dark-mode .info-box .rule-desc strong { color: #eef4ff; }
+    body.dark-mode .bank-details-box { background: #0a1a2a; border-color: #2a4a5a; }
+    body.dark-mode .bank-details-box .value { color: #eef4ff; }
+    body.dark-mode .input-row label { color: #8aaabc; }
+    body.dark-mode .input-row input { background: #0a1a2a; border-color: #2a4a5a; color: #eef4ff; }
+    body.dark-mode .section-headline { color: #eef4ff; }
+    body.dark-mode .section-subline { color: #8aaabc; }
+    body.dark-mode .mini-history-item { border-bottom-color: #2a4a5a; }
+    body.dark-mode .footer .links a { color: #8aaabc; }
+    body.dark-mode .footer .links a:hover { color: #1a6bff; }
+    body.dark-mode .toast-notification { background: #1a2a3a; border-left-color: #1a6bff; }
+    body.dark-mode .toast-notification .toast-msg { color: #eef4ff; }
+    body.dark-mode .dark-toggle { background: rgba(26,107,255,0.15); border-color: rgba(26,107,255,0.3); color: #1a6bff; }
+    body.dark-mode .dark-toggle:hover { background: rgba(26,107,255,0.25); }
+    body.dark-mode .disclaimer-box { background: #1a2a3a; border-color: #2a4a5a; color: #8aaabc; }
+    body.dark-mode .disclaimer-box i { color: #1a6bff; }
+    body.dark-mode .vip-required-banner { background: #451a1a; border-color: #ef4444; color: #fca5a5; }
+    body.dark-mode .vip-required-banner i { color: #ef4444; }
+    body.dark-mode .transfer-btn { background: #7c3aed; color: #fff; }
+    body.dark-mode .transfer-btn:hover { background: #6d28d9; }
+    body.dark-mode .transfer-btn:disabled { background: #4a4a5a; }
+
+    ::-webkit-scrollbar { width: 4px; }
+    ::-webkit-scrollbar-track { background: #dce4f0; }
+    ::-webkit-scrollbar-thumb { background: #1a6bff; border-radius: 4px; }
+    body.dark-mode ::-webkit-scrollbar-track { background: #1a2a3a; }
+    body.dark-mode ::-webkit-scrollbar-thumb { background: #1a6bff; }
+
+    .app-container {
+      width: 100%;
+      max-width: 480px;
+      min-height: 100vh;
+      background: #ffffff;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      box-shadow: 0 0 30px rgba(0, 40, 80, 0.08);
+      transition: background 0.3s ease;
+    }
+
+    @keyframes float { 0%,100% { transform: translateY(0px); } 50% { transform: translateY(-6px); } }
+    @keyframes spin { to { transform: rotate(360deg); } }
+    @keyframes fadeSlideUp { from { opacity:0; transform:translateY(20px); } to { opacity:1; transform:translateY(0); } }
+    @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+    @keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:0.6; } }
+
+    .top-bar {
+      width: 100%;
+      padding: 14px 20px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-bottom: 1px solid #e0e8f4;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: #ffffff;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .top-bar .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .top-bar .brand i {
+      color: #1a6bff;
+      font-size: 1.4rem;
+      animation: float 3s ease-in-out infinite;
+    }
+    .top-bar .brand span {
+      font-size: 1.1rem;
+      font-weight: 800;
+      text-transform: uppercase;
+      color: #1a3a6a;
+    }
+    .top-bar .brand span .red { color: #e53e3e; }
+    .top-bar .actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .top-bar .back-link {
+      color: #1a6bff;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+    .top-bar .back-link:hover { gap: 8px; }
+
+    .dark-toggle {
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      background: rgba(26,107,255,0.08);
+      border: 1px solid rgba(26,107,255,0.2);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      color: #1a6bff;
+      transition: all 0.3s;
+      font-size: 0.9rem;
+    }
+    .dark-toggle:hover { background: rgba(26,107,255,0.15); transform: scale(1.05); }
+
+    .app-workspace {
+      flex-grow: 1;
+      padding: 20px;
+    }
+
+    .section-headline {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .section-headline i { color: #1a6bff; }
+    .section-subline {
+      font-size: 0.75rem;
+      margin-bottom: 16px;
+      color: #6a8a9a;
+      line-height: 1.4;
+    }
+
+    .disclaimer-box {
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid #b3d4fc;
+      background: #f0f7ff;
+      color: #1a3a6a;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.7rem;
+      line-height: 1.5;
+      transition: background 0.3s, border-color 0.3s, color 0.3s;
+    }
+    .disclaimer-box i { color: #1a6bff; font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
+    .disclaimer-box strong { font-weight: 800; }
+
+    .vip-required-banner {
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid #f59e0b;
+      background: #fef3c7;
+      color: #92400e;
+      margin-bottom: 16px;
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      font-size: 0.7rem;
+      line-height: 1.5;
+    }
+    .vip-required-banner i { font-size: 1.1rem; margin-top: 2px; flex-shrink: 0; }
+    .vip-required-banner strong { font-weight: 800; }
+
+    .wallet-tabs {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 16px;
+    }
+    .wallet-tab {
+      padding: 12px;
+      border-radius: 14px;
+      text-align: center;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border: 2px solid #e0e8f4;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #f8faff;
+      color: #4a6a8a;
+    }
+    .wallet-tab:hover { transform: translateY(-2px); }
+    .wallet-tab.active {
+      background: #1a6bff;
+      color: #fff;
+      border-color: #1a6bff;
+      box-shadow: 0 4px 12px rgba(26,107,255,0.2);
+    }
+    .wallet-tab i { margin-right: 6px; }
+
+    .info-box {
+      background: #f8faff;
+      border-radius: 14px;
+      padding: 14px 16px;
+      border: 1px solid #dce4f0;
+      margin-bottom: 16px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .info-box .rule-title {
+      font-weight: 700;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .info-box .rule-title i { color: #1a6bff; }
+    .info-box .rule-desc {
+      font-size: 0.75rem;
+      color: #6a8a9a;
+      margin-top: 4px;
+      line-height: 1.5;
+    }
+    .info-box .rule-desc strong { color: #1a2a3a; }
+    .info-box.warning {
+      border-color: #e53e3e;
+      background: rgba(229,62,62,0.04);
+    }
+    .info-box.warning .rule-title { color: #e53e3e; }
+    .info-box.warning .rule-title i { color: #e53e3e; }
+    .info-box.success {
+      border-color: #10b981;
+      background: rgba(16,185,129,0.04);
+    }
+    .info-box.success .rule-title { color: #10b981; }
+    .info-box.success .rule-title i { color: #10b981; }
+
+    .balance-display {
+      background: linear-gradient(135deg, #1a6bff, #1555cc);
+      border-radius: 14px;
+      padding: 16px;
+      text-align: center;
+      margin-bottom: 16px;
+      color: #fff;
+      position: relative;
+      overflow: hidden;
+    }
+    .balance-display::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -30%;
+      width: 150%;
+      height: 150%;
+      background: radial-gradient(circle, rgba(255,255,255,0.05) 0%, transparent 70%);
+      pointer-events: none;
+    }
+    .balance-display .balance-label {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      opacity: 0.85;
+      letter-spacing: 0.5px;
+    }
+    .balance-display .balance-amount {
+      font-size: 2.2rem;
+      font-weight: 900;
+      letter-spacing: 1px;
+    }
+    .balance-display .balance-min {
+      font-size: 0.75rem;
+      opacity: 0.9;
+      margin-top: 4px;
+    }
+
+    .bank-details-box {
+      background: #f8faff;
+      border-radius: 16px;
+      padding: 16px 18px;
+      border: 1px solid #dce4f0;
+      margin-bottom: 16px;
+      transition: background 0.3s, border-color 0.3s;
+    }
+    .bank-details-box .bank-title {
+      font-size: 0.7rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      color: #1a6bff;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .bank-details-box .bank-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 6px 0;
+      border-bottom: 1px solid rgba(0,0,0,0.03);
+    }
+    .bank-details-box .bank-row:last-child { border-bottom: none; }
+    .bank-details-box .bank-row .label {
+      font-size: 0.65rem;
+      color: #6a8a9a;
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+    .bank-details-box .bank-row .value {
+      font-weight: 700;
+      font-size: 0.85rem;
+    }
+
+    .input-row {
+      margin-bottom: 14px;
+    }
+    .input-row label {
+      font-size: 0.65rem;
+      text-transform: uppercase;
+      font-weight: 700;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .input-row label .required { color: #e53e3e; }
+    .input-row input {
+      width: 100%;
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #dce4f0;
+      font-size: 0.9rem;
+      transition: 0.2s;
+      background: #ffffff;
+    }
+    .input-row input:focus {
+      border-color: #1a6bff;
+      outline: none;
+      box-shadow: 0 0 0 3px rgba(26,107,255,0.06);
+    }
+    .input-row .hint {
+      font-size: 0.6rem;
+      color: #6a8a9a;
+      margin-top: 4px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .amount-input-wrapper {
+      position: relative;
+    }
+    .amount-input-wrapper .currency-prefix {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-weight: 700;
+      color: #6a8a9a;
+      font-size: 0.9rem;
+    }
+    .amount-input-wrapper input {
+      padding-left: 32px;
+    }
+
+    .btn-submit {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: linear-gradient(135deg, #1a6bff, #1555cc);
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      box-shadow: 0 4px 14px rgba(26,107,255,0.2);
+      margin-top: 4px;
+    }
+    .btn-submit:hover:not(:disabled) {
+      transform: scale(1.02);
+      box-shadow: 0 6px 20px rgba(26,107,255,0.3);
+    }
+    .btn-submit:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+    }
+    .btn-submit .spinner-small {
+      width: 20px;
+      height: 20px;
+      border: 2px solid #fff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    .transfer-btn {
+      width: 100%;
+      padding: 12px;
+      border: none;
+      border-radius: 10px;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: #8b5cf6;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .transfer-btn:hover:not(:disabled) {
+      transform: scale(1.02);
+      box-shadow: 0 4px 14px rgba(139,92,246,0.3);
+    }
+    .transfer-btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+      transform: none;
+      background: #6b7280;
+    }
+    .transfer-btn .spinner-small {
+      width: 18px;
+      height: 18px;
+      border: 2px solid #fff;
+      border-top-color: transparent;
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+      display: inline-block;
+    }
+
+    .mini-history {
+      margin-top: 20px;
+      border-top: 1px solid #e0e8f4;
+      padding-top: 16px;
+    }
+    .mini-history .mini-title {
+      font-size: 0.7rem;
+      text-transform: uppercase;
+      color: #6a8a9a;
+      font-weight: 700;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .mini-history .mini-title i { color: #1a6bff; }
+    .mini-history-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 8px 0;
+      border-bottom: 1px solid #e0e8f4;
+      font-size: 0.7rem;
+    }
+    .mini-history-item:last-child { border-bottom: none; }
+    .mini-history-item .amount { font-weight: 700; }
+    .mini-history-item .amount.positive { color: #10b981; }
+    .mini-history-item .amount.negative { color: #e53e3e; }
+    .mini-history-item .status {
+      font-weight: 700;
+      text-transform: uppercase;
+      font-size: 0.55rem;
+      padding: 2px 8px;
+      border-radius: 20px;
+    }
+    .status-pending { background: rgba(229,184,66,0.15); color: #e5b842; }
+    .status-approved { background: rgba(16,185,129,0.15); color: #10b981; }
+    .status-rejected { background: rgba(239,68,68,0.15); color: #ef4444; }
+
+    .footer {
+      padding: 24px 20px 10px;
+      border-top: 1px solid rgba(0,0,0,0.04);
+      text-align: center;
+      margin-top: 10px;
+    }
+    .footer .logo-small {
+      font-weight: 900;
+      font-size: 0.9rem;
+      color: #1a6bff;
+      letter-spacing: 1px;
+    }
+    .footer p {
+      font-size: 0.6rem;
+      color: #6a8a9a;
+      margin-top: 6px;
+      line-height: 1.4;
+    }
+    .footer .links {
+      display: flex;
+      justify-content: center;
+      gap: 18px;
+      margin-top: 10px;
+      flex-wrap: wrap;
+    }
+    .footer .links a {
+      color: #4a6a8a;
+      text-decoration: none;
+      font-size: 0.65rem;
+      transition: color 0.2s;
+    }
+    .footer .links a:hover { color: #1a6bff; }
+
+    .toast-notification {
+      position: fixed;
+      top: 25px;
+      left: 50%;
+      transform: translateX(-50%) translateY(-120px);
+      width: calc(100% - 32px);
+      max-width: 400px;
+      background: #1a2a3a;
+      border-left: 4px solid #1a6bff;
+      padding: 15px;
+      border-radius: 10px;
+      transition: transform 0.3s cubic-bezier(0.175,0.885,0.32,1.275);
+      z-index: 9999;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .toast-notification.show { transform: translateX(-50%) translateY(0); }
+    .toast-notification i { font-size: 1.2rem; }
+    .toast-notification .toast-msg { font-size: 0.85rem; font-weight: 600; flex: 1; }
+
+    .paystack-loader {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      z-index: 30000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .paystack-loader.active { display: flex; }
+    .paystack-loader .loader-icon {
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      background: #1a6bff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      font-size: 2rem;
+      color: #fff;
+      box-shadow: 0 8px 30px rgba(26,107,255,0.25);
+      animation: pulse 1.5s infinite;
+    }
+    .paystack-loader .loader-text {
+      font-size: 1.1rem;
+      font-weight: 800;
+      margin-bottom: 4px;
+    }
+    .paystack-loader .loader-sub { font-size: 0.8rem; }
+    .paystack-loader .loader-bar {
+      width: 200px;
+      height: 4px;
+      background: #dce4f0;
+      border-radius: 4px;
+      margin-top: 16px;
+      overflow: hidden;
+    }
+    .paystack-loader .loader-bar .bar-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #1a6bff, #1555cc);
+      border-radius: 4px;
+      width: 0%;
+      transition: width 0.3s ease;
+      animation: shimmer 1.5s infinite;
+      background-size: 200% 100%;
+    }
+
+    .loading-overlay {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.7);
+      backdrop-filter: blur(6px);
+      z-index: 40000;
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .loading-overlay.active { display: flex; }
+    .loading-overlay .spinner {
+      width: 50px;
+      height: 50px;
+      border: 4px solid rgba(255,255,255,0.15);
+      border-top-color: #1a6bff;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+      margin-bottom: 16px;
+    }
+    .loading-overlay h3 {
+      color: #fff;
+      font-weight: 800;
+      font-size: 1.2rem;
+    }
+    .loading-overlay p {
+      color: rgba(255,255,255,0.7);
+      font-size: 0.85rem;
+    }
+
+    @media (max-width: 420px) {
+      .balance-display .balance-amount { font-size: 1.6rem; }
+      .wallet-tabs { gap: 6px; }
+      .wallet-tab { padding: 10px; font-size: 0.75rem; }
+      .top-bar .brand span { font-size: 0.9rem; }
+      .disclaimer-box { font-size: 0.65rem; padding: 12px; }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="spinner"></div>
+    <h3>SwiftDuel</h3>
+    <p>Loading your withdrawal details...</p>
+  </div>
+
+  <div class="paystack-loader" id="paystackLoader">
+    <div class="loader-icon"><i class="fa-solid fa-spinner fa-spin"></i></div>
+    <div class="loader-text">Processing your withdrawal...</div>
+    <div class="loader-sub">Please wait, we're submitting your request</div>
+    <div class="loader-bar"><div class="bar-fill" id="loaderBarFill"></div></div>
+  </div>
+
+  <div class="toast-notification" id="customToast">
+    <i class="fa-solid fa-circle-check" style="color: #10b981;"></i>
+    <div class="toast-msg" id="toastMsg">Ready</div>
+  </div>
+
+  <div class="app-container">
+
+    <header class="top-bar">
+      <a href="dashboard.html" class="back-link"><i class="fa-solid fa-chevron-left"></i> Dashboard</a>
+      <div class="brand">
+        <i class="fa-solid fa-bolt"></i>
+        <span>Swift<span class="red">Duel</span></span>
+      </div>
+      <div class="actions">
+        <div class="dark-toggle" id="darkModeToggle" title="Toggle dark/light mode">
+          <i class="fa-solid fa-moon"></i>
+        </div>
+      </div>
+    </header>
+
+    <div class="app-workspace">
+
+      <h2 class="section-headline"><i class="fa-solid fa-money-bill-transfer"></i> Withdraw Earnings</h2>
+      <p class="section-subline">
+        Select your wallet, enter the amount, and your balance will be <strong>deducted instantly</strong>.
+        <br /><span style="color:#f59e0b; font-weight:600;">⏳ Pending approval</span> – admin will verify and release payment.
+        <br /><span style="color:#8b5cf6; font-weight:600;">📌 One transaction per request – status changes when admin acts.</span>
+      </p>
+
+      <div class="disclaimer-box">
+        <i class="fa-solid fa-shield-halved"></i>
+        <div>
+          <strong>🔒 Secure &amp; Fair:</strong> Withdrawals are reviewed by admin and processed manually.
+          Funds are deducted from your wallet immediately upon request. <strong>One transaction record</strong> – status changes from
+          <em>pending</em> to <em>approved</em> or <em>rejected</em>. Fraudulent attempts result in a <strong>permanent ban</strong>.
+        </div>
+      </div>
+
+      <div class="vip-required-banner" id="vipRequiredBanner" style="display:none;">
+        <i class="fa-solid fa-crown"></i>
+        <div>
+          <strong>⚠️ VIP Required:</strong> You need to be at least <strong>VIP 1</strong> to withdraw funds.
+          Please upgrade your account in the <strong>Deposit</strong> section.
+        </div>
+      </div>
+
+      <div class="wallet-tabs">
+        <div class="wallet-tab active" id="tabTask" onclick="selectWallet('task')">
+          <i class="fa-solid fa-wallet"></i> Task Wallet
+        </div>
+        <div class="wallet-tab" id="tabReferral" onclick="selectWallet('referral')">
+          <i class="fa-solid fa-users"></i> Referral Wallet
+        </div>
+      </div>
+
+      <div class="withdraw-card" id="withdrawCard">
+
+        <div class="balance-display">
+          <div class="balance-label" id="walletBalanceLabel">Task Wallet Balance</div>
+          <div class="balance-amount" id="walletBalance">₦0.00</div>
+          <div class="balance-min" id="walletMinDisplay">Minimum: ₦0</div>
+        </div>
+
+        <div class="info-box" id="scheduleBox" style="border-left:4px solid #fbbf24;">
+          <div class="rule-title"><i class="fa-regular fa-calendar"></i> <span id="scheduleTitle">Task Withdrawal Schedule</span></div>
+          <div class="rule-desc" id="scheduleDesc">
+            Day: <strong id="displayDay">--</strong> | Time: <strong id="displayStart">--</strong> – <strong id="displayEnd">--</strong> (WAT)
+          </div>
+          <div style="font-size:0.65rem; color:#6a8a9a; margin-top:4px;">
+            <i class="fa-regular fa-clock"></i> Withdrawals are only processed on the scheduled day &amp; time.
+          </div>
+        </div>
+
+        <div class="info-box" id="rulesBox">
+          <div class="rule-title"><i class="fa-solid fa-circle-info"></i> <span id="rulesTitle">Task Wallet Rules</span></div>
+          <div class="rule-desc" id="rulesDesc">
+            Minimum: <strong id="rulesMinDisplay">₦0</strong><br />
+            You must reach the minimum again after each withdrawal.<br />
+            <span id="taxDisplay" style="color:#1a6bff; font-weight:700;">Tax: 10% (deducted on approval)</span><br />
+            <span style="color:#8b5cf6; font-weight:600;"><i class="fa-regular fa-crown"></i> VIP 1+ required to withdraw.</span>
+          </div>
+        </div>
+
+        <div class="info-box warning" id="pendingWarning" style="display:none;">
+          <div class="rule-title"><i class="fa-solid fa-lock"></i> Withdrawal Locked</div>
+          <div class="rule-desc">You have a pending withdrawal request. Please wait for admin approval before requesting another.</div>
+        </div>
+
+        <div class="info-box success" id="statusBox">
+          <div class="rule-title"><i class="fa-regular fa-clock"></i> <span id="statusTitle">Ready to Withdraw</span></div>
+          <div class="rule-desc" id="statusDesc">Funds will be deducted immediately upon submission.</div>
+        </div>
+
+        <div class="bank-details-box">
+          <div class="bank-title"><i class="fa-solid fa-building-columns"></i> Your Linked Bank Account</div>
+          <div class="bank-row">
+            <span class="label">Bank</span>
+            <span class="value" id="displayBank">Not set</span>
+          </div>
+          <div class="bank-row">
+            <span class="label">Account Name</span>
+            <span class="value" id="displayAccountName">Not set</span>
+          </div>
+          <div class="bank-row">
+            <span class="label">Account Number</span>
+            <span class="value" id="displayAccountNumberText">Not set</span>
+          </div>
+        </div>
+
+        <div class="input-row">
+          <label>Withdrawal Amount (₦) <span class="required">*</span></label>
+          <div class="amount-input-wrapper">
+            <span class="currency-prefix">₦</span>
+            <input type="number" id="amountInput" placeholder="Enter amount" min="0" step="100" />
+          </div>
+          <div class="hint"><i class="fa-solid fa-info-circle"></i> Minimum depends on your selected wallet.</div>
+        </div>
+
+        <button class="btn-submit" id="withdrawBtn" disabled>
+          <i class="fa-solid fa-paper-plane"></i> Request Withdrawal
+        </button>
+
+        <div id="transferSection" style="display:none; margin-top:10px;">
+          <button class="transfer-btn" id="transferBtn" onclick="transferToTask()">
+            <i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer to Task Wallet
+          </button>
+          <div style="font-size:0.6rem; color:#6a8a9a; text-align:center; margin-top:4px;">
+            <i class="fa-regular fa-circle-info"></i> Move all funds from Referral to Task Wallet (instant)
+          </div>
+        </div>
+
+        <div class="mini-history" id="miniHistoryContainer">
+          <div class="mini-title"><i class="fa-solid fa-clock-rotate-left"></i> Your Recent Withdrawals</div>
+          <div id="miniHistoryList">
+            <div style="text-align:center;padding:8px 0;font-size:0.65rem;color:#6a8a9a;">
+              <i class="fa-solid fa-spinner fa-pulse"></i> Loading...
+            </div>
+          </div>
+        </div>
+
+        <div style="margin-top:20px; border-top:1px solid #e0e8f4; padding-top:16px;">
+          <div style="font-size:0.65rem; color:#6a8a9a; line-height:1.6;">
+            <p><i class="fa-regular fa-clock" style="color:#f59e0b;"></i> <strong>Processing time:</strong> Admin reviews within 24 hours.</p>
+            <p><i class="fa-regular fa-shield" style="color:#1a6bff;"></i> <strong>Security:</strong> All transactions are monitored. Fraud leads to a permanent ban.</p>
+            <p><i class="fa-regular fa-crown" style="color:#8b5cf6;"></i> <strong>VIP Required:</strong> You must be VIP 1 or higher to withdraw.</p>
+            <p><i class="fa-regular fa-percent" style="color:#ef4444;"></i> <strong>Tax:</strong> Only Task Wallet withdrawals are taxed (rate set by admin). Referral withdrawals have 0% tax.</p>
+            <p><i class="fa-regular fa-circle-check" style="color:#10b981;"></i> <strong>Instant deduction:</strong> Your balance is reduced immediately upon request.</p>
+            <p><i class="fa-regular fa-file-lines" style="color:#1a6bff;"></i> <strong>Single transaction:</strong> One record per request – status changes from <em>pending</em> to <em>approved</em> or <em>rejected</em>.</p>
+          </div>
+        </div>
+
+      </div>
+
+    </div>
+
+    <footer class="footer">
+      <div class="logo-small">SwiftDuel</div>
+      <p>© 2026 SwiftDuel. All rights reserved.<br />Licensed &amp; secure.</p>
+      <div class="links">
+        <a href="https://t.me/swiftduel" target="_blank"><i class="fa-brands fa-telegram"></i> Telegram</a>
+        <a href="#" onclick="alert('Coming soon!')">Privacy</a>
+        <a href="#" onclick="alert('Coming soon!')">Terms</a>
+      </div>
+    </footer>
+
+  </div>
+
+  <script>
+    // ================================================================
+    // FIREBASE CONFIG
+    // ================================================================
+    const firebaseConfig = {
+      apiKey: "AIzaSyDQ3uDQ2h61dDNeRowTpItGgrZridn3s40",
+      authDomain: "swiftduel.firebaseapp.com",
+      databaseURL: "https://swiftduel-default-rtdb.firebaseio.com",
+      projectId: "swiftduel",
+      storageBucket: "swiftduel.firebasestorage.app",
+      messagingSenderId: "114652592444",
+      appId: "1:114652592444:web:19ce34c0a6af62c4de0639"
+    };
+    if (!firebase.apps.length) firebase.initializeApp(firebaseConfig);
+    const auth = firebase.auth();
+    const db = firebase.database();
+
+    // ================================================================
+    // TELEGRAM
+    // ================================================================
+    const BOT_TOKEN = "8805425061:AAFiR5VN0RQ7UeBzedGYQ5E1_Wa3j-Q4ED4";
+    const ADMIN_CHAT_ID = "8966823502";
+
+    // ================================================================
+    // VIP PACKAGES
+    // ================================================================
+    const VIP_PACKAGES = [
+      { level: 1, price: 500, dailyRate: 50 },
+      { level: 2, price: 1000, dailyRate: 100 },
+      { level: 3, price: 2500, dailyRate: 300 },
+      { level: 4, price: 4000, dailyRate: 500 },
+      { level: 5, price: 5500, dailyRate: 700 },
+      { level: 6, price: 7500, dailyRate: 1000 },
+      { level: 7, price: 10000, dailyRate: 1500 },
+      { level: 8, price: 13000, dailyRate: 2100 },
+      { level: 9, price: 16500, dailyRate: 3000 }
+    ];
+
+    // ================================================================
+    // GLOBALS
+    // ================================================================
+    let currentUser = null;
+    let userData = null;
+    let adminSettings = null;
+    let withdrawalTax = 10;
+    let selectedWallet = 'task';
+    let hasPending = false;
+    let isSubmitting = false;
+    let isTransferring = false;
+    let isFirstLoad = true;
+    let pollInterval = null;
+    let userListenerRef = null;
+    let pendingListenerRef = null;
+    let pendingWithdrawalKey = null; // track the pending withdrawal key
+
+    const CACHE_KEY = 'swiftduel_withdraw_cache';
+    let cachedData = null;
+
+    // ================================================================
+    // DOM REFS
+    // ================================================================
+    const tabTask = document.getElementById('tabTask');
+    const tabReferral = document.getElementById('tabReferral');
+    const walletBalance = document.getElementById('walletBalance');
+    const walletBalanceLabel = document.getElementById('walletBalanceLabel');
+    const walletMinDisplay = document.getElementById('walletMinDisplay');
+    const rulesTitle = document.getElementById('rulesTitle');
+    const rulesDesc = document.getElementById('rulesDesc');
+    const rulesMinDisplay = document.getElementById('rulesMinDisplay');
+    const taxDisplay = document.getElementById('taxDisplay');
+    const pendingWarning = document.getElementById('pendingWarning');
+    const displayBank = document.getElementById('displayBank');
+    const displayAccountName = document.getElementById('displayAccountName');
+    const displayAccountNumberText = document.getElementById('displayAccountNumberText');
+    const amountInput = document.getElementById('amountInput');
+    const withdrawBtn = document.getElementById('withdrawBtn');
+    const miniHistoryList = document.getElementById('miniHistoryList');
+    const paystackLoader = document.getElementById('paystackLoader');
+    const loaderBarFill = document.getElementById('loaderBarFill');
+    const displayDay = document.getElementById('displayDay');
+    const displayStart = document.getElementById('displayStart');
+    const displayEnd = document.getElementById('displayEnd');
+    const scheduleTitle = document.getElementById('scheduleTitle');
+    const scheduleDesc = document.getElementById('scheduleDesc');
+    const vipRequiredBanner = document.getElementById('vipRequiredBanner');
+    const statusTitle = document.getElementById('statusTitle');
+    const statusDesc = document.getElementById('statusDesc');
+    const transferSection = document.getElementById('transferSection');
+    const transferBtn = document.getElementById('transferBtn');
+    const loadingOverlay = document.getElementById('loadingOverlay');
+
+    const toast = document.getElementById('customToast');
+    const toastMsg = document.getElementById('toastMsg');
+    const darkToggle = document.getElementById('darkModeToggle');
+
+    // ================================================================
+    // LOADING OVERLAY
+    // ================================================================
+    function showLoading() { loadingOverlay.classList.add('active'); }
+    function hideLoading() { loadingOverlay.classList.remove('active'); }
+
+    // ================================================================
+    // CACHE HELPERS
+    // ================================================================
+    function loadCache() {
+      try {
+        const raw = localStorage.getItem(CACHE_KEY);
+        if (raw) {
+          cachedData = JSON.parse(raw);
+          return cachedData;
+        }
+      } catch (e) { /* ignore */ }
+      return null;
+    }
+
+    function saveCache(data) {
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify(data));
+      } catch (e) { /* ignore */ }
+    }
+
+    // ================================================================
+    // TOAST
+    // ================================================================
+    function showToast(msg, isError = false) {
+      const icon = toast.querySelector('i');
+      icon.className = isError ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+      icon.style.color = isError ? '#ef4444' : '#10b981';
+      toastMsg.innerText = msg;
+      toast.classList.add('show');
+      clearTimeout(toast._timer);
+      toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
+    }
+
+    // ================================================================
+    // PAYSTACK LOADER
+    // ================================================================
+    function showPaystackLoader() {
+      paystackLoader.classList.add('active');
+      let progress = 0;
+      const interval = setInterval(() => {
+        progress += Math.random() * 8 + 2;
+        if (progress >= 100) { progress = 100; clearInterval(interval); }
+        loaderBarFill.style.width = progress + '%';
+      }, 200);
+      return interval;
+    }
+
+    function hidePaystackLoader() {
+      paystackLoader.classList.remove('active');
+      loaderBarFill.style.width = '0%';
+    }
+
+    // ================================================================
+    // TELEGRAM
+    // ================================================================
+    async function sendTelegramMessage(message) {
+      try {
+        const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+        await fetch(url, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            chat_id: ADMIN_CHAT_ID,
+            text: message,
+            parse_mode: 'Markdown'
+          })
+        });
+      } catch (e) { console.warn('Telegram notification failed:', e); }
+    }
+
+    async function sendTwoTelegramMessages(msg1, msg2) {
+      await Promise.all([
+        sendTelegramMessage(msg1),
+        sendTelegramMessage(msg2)
+      ]);
+    }
+
+    // ================================================================
+    // DARK MODE
+    // ================================================================
+    (function() {
+      const saved = localStorage.getItem('swiftTheme');
+      if (saved === 'dark') {
+        document.body.classList.add('dark-mode');
+        document.body.classList.remove('light-mode');
+        darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+      } else {
+        document.body.classList.add('light-mode');
+        document.body.classList.remove('dark-mode');
+        darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+      }
+      darkToggle.addEventListener('click', function() {
+        const isDark = document.body.classList.toggle('dark-mode');
+        document.body.classList.toggle('light-mode');
+        if (isDark) {
+          darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
+          localStorage.setItem('swiftTheme', 'dark');
+        } else {
+          darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
+          localStorage.setItem('swiftTheme', 'light');
+        }
+      });
+    })();
+
+    // ================================================================
+    // TIME HELPERS
+    // ================================================================
+    function getCurrentTimeMinutes() {
+      const now = new Date();
+      return now.getHours() * 60 + now.getMinutes();
+    }
+
+    function getCurrentDay() {
+      return new Date().getDate();
+    }
+
+    function formatTimeFromMinutes(minutes) {
+      const h = Math.floor(minutes / 60);
+      const m = minutes % 60;
+      const ampm = h >= 12 ? 'pm' : 'am';
+      const h12 = h % 12 || 12;
+      return `${h12}:${String(m).padStart(2, '0')}${ampm}`;
+    }
+
+    function parseTimeStringToMinutes(str) {
+      const parts = str.split(':');
+      if (parts.length === 2) {
+        const h = parseInt(parts[0]);
+        const m = parseInt(parts[1]);
+        if (!isNaN(h) && !isNaN(m)) return h * 60 + m;
+      }
+      return null;
+    }
+
+    // ================================================================
+    // SELECT WALLET
+    // ================================================================
+    window.selectWallet = function(wallet) {
+      if (isSubmitting || isTransferring) {
+        showToast('Please wait for current operation to complete.', true);
+        return;
+      }
+      selectedWallet = wallet;
+      tabTask.classList.toggle('active', wallet === 'task');
+      tabReferral.classList.toggle('active', wallet === 'referral');
+      transferSection.style.display = (wallet === 'referral') ? 'block' : 'none';
+      if (wallet === 'referral' && currentUser) {
+        db.ref('users/' + currentUser.uid).once('value').then(snap => {
+          if (snap.exists()) {
+            userData = snap.val();
+            updateWithdrawUI();
+            loadMiniHistory(currentUser.uid);
+          }
+        }).catch(e => console.warn('Silent refresh error:', e));
+      }
+      updateWithdrawUI();
+    };
+
+    // ================================================================
+    // UPDATE WITHDRAW UI
+    // ================================================================
+    function updateWithdrawUI() {
+      if (!userData) return;
+
+      const isVip = userData.vipLevel > 0;
+      vipRequiredBanner.style.display = isVip ? 'none' : 'flex';
+
+      const vipInfo = VIP_PACKAGES.find(p => p.level === userData.vipLevel) || { dailyRate: 0 };
+      const dailyRate = vipInfo.dailyRate || 0;
+      const taskMin = dailyRate * 30;
+      const referralMin = 1000;
+
+      const taskBal = userData.taskBalance || 0;
+      const refBal = userData.referralBalance || 0;
+
+      const taxRate = selectedWallet === 'task' ? withdrawalTax : 0;
+      taxDisplay.textContent = `Tax: ${taxRate}% (deducted on approval)`;
+
+      const day = adminSettings?.withdrawalDay || 31;
+      const startStr = adminSettings?.withdrawalStartTime || '01:00';
+      const endStr = adminSettings?.withdrawalEndTime || '06:00';
+      const startMinutes = parseTimeStringToMinutes(startStr) || 60;
+      const endMinutes = parseTimeStringToMinutes(endStr) || 360;
+      const startDisplay = formatTimeFromMinutes(startMinutes);
+      const endDisplay = formatTimeFromMinutes(endMinutes);
+
+      displayDay.textContent = day;
+      displayStart.textContent = startDisplay;
+      displayEnd.textContent = endDisplay;
+
+      let canWithdraw = true;
+      let disableReason = '';
+
+      if (!isVip) {
+        canWithdraw = false;
+        disableReason = 'VIP 1+ required to withdraw.';
+      } else if (!userData.bankName || !userData.accountNumber || userData.bankName === 'Not set' || userData.bankName === '') {
+        canWithdraw = false;
+        disableReason = 'Add bank details first.';
+      } else if (hasPending) {
+        canWithdraw = false;
+        disableReason = 'You have a pending withdrawal.';
+      } else if (userData.status === 'banned') {
+        canWithdraw = false;
+        disableReason = 'Account suspended.';
+      }
+
+      if (selectedWallet === 'task' && canWithdraw) {
+        scheduleTitle.textContent = 'Task Withdrawal Schedule';
+        scheduleDesc.innerHTML =
+          `Day: <strong>${day}</strong> | Time: <strong>${startDisplay}</strong> – <strong>${endDisplay}</strong> (WAT)`;
+        document.getElementById('scheduleBox').style.display = 'block';
+        walletBalanceLabel.textContent = 'Task Wallet Balance';
+        walletBalance.textContent = '₦' + taskBal.toLocaleString();
+        walletMinDisplay.textContent = 'Minimum: ₦' + taskMin.toLocaleString();
+        rulesTitle.textContent = 'Task Wallet Rules';
+        rulesMinDisplay.textContent = '₦' + taskMin.toLocaleString();
+        rulesDesc.innerHTML = `
+          Minimum: <strong>₦${taskMin.toLocaleString()}</strong><br />
+          You must reach the minimum again after each withdrawal.<br />
+          <span style="color:#1a6bff; font-weight:700;">Tax: ${withdrawalTax}% (deducted on approval)</span><br />
+          <span style="color:#8b5cf6; font-weight:600;"><i class="fa-regular fa-crown"></i> VIP 1+ required to withdraw.</span>
+        `;
+
+        if (taskBal < taskMin) {
+          canWithdraw = false;
+          disableReason = 'Insufficient balance (minimum ₦' + taskMin.toLocaleString() + ').';
+        }
+
+        const currentDay = getCurrentDay();
+        const currentMinutes = getCurrentTimeMinutes();
+        const isDayMatch = (currentDay === day);
+        const isTimeMatch = (currentMinutes >= startMinutes && currentMinutes < endMinutes);
+        if ((!isDayMatch || !isTimeMatch) && canWithdraw) {
+          canWithdraw = false;
+          if (!isDayMatch) disableReason = 'Withdrawals only on day ' + day + '.';
+          else disableReason = 'Withdrawals only between ' + startDisplay + ' – ' + endDisplay + '.';
+        }
+      } else if (selectedWallet === 'referral' && canWithdraw) {
+        scheduleTitle.textContent = 'Referral Wallet (No Schedule)';
+        scheduleDesc.innerHTML = `Available <strong>daily</strong> between <strong>7am – 7pm</strong> (WAT)`;
+        document.getElementById('scheduleBox').style.display = 'block';
+        walletBalanceLabel.textContent = 'Referral Wallet Balance';
+        walletBalance.textContent = '₦' + refBal.toLocaleString();
+        walletMinDisplay.textContent = 'Minimum: ₦' + referralMin.toLocaleString();
+        rulesTitle.textContent = 'Referral Wallet Rules';
+        rulesMinDisplay.textContent = '₦' + referralMin.toLocaleString();
+        rulesDesc.innerHTML = `
+          Minimum: <strong>₦${referralMin.toLocaleString()}</strong><br />
+          Available daily between <strong>7am – 7pm</strong>.<br />
+          <span style="color:#10b981; font-weight:600;">✅ 0% tax – no fee applies</span><br />
+          <span style="color:#8b5cf6; font-weight:600;"><i class="fa-regular fa-crown"></i> VIP 1+ required to withdraw.</span>
+        `;
+
+        if (refBal < referralMin) {
+          canWithdraw = false;
+          disableReason = 'Insufficient balance (minimum ₦' + referralMin.toLocaleString() + ').';
+        }
+
+        const currentMinutes = getCurrentTimeMinutes();
+        if ((currentMinutes < 7 * 60 || currentMinutes >= 19 * 60) && canWithdraw) {
+          canWithdraw = false;
+          disableReason = 'Referral withdrawals only available 7am – 7pm.';
+        }
+
+        if (!isTransferring) {
+          transferBtn.disabled = (refBal <= 0 || hasPending || userData.status === 'banned');
+          if (refBal <= 0) {
+            transferBtn.innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left"></i> No funds to transfer';
+          } else if (hasPending) {
+            transferBtn.innerHTML = '<i class="fa-solid fa-lock"></i> Pending withdrawal';
+          } else {
+            transferBtn.innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer to Task Wallet';
+          }
+        }
+      }
+
+      if (!canWithdraw) {
+        withdrawBtn.disabled = true;
+        withdrawBtn.innerHTML = '<i class="fa-solid fa-ban"></i> ' + disableReason;
+      } else {
+        withdrawBtn.disabled = false;
+        withdrawBtn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Request Withdrawal';
+      }
+
+      pendingWarning.style.display = hasPending ? 'block' : 'none';
+
+      if (hasPending) {
+        statusTitle.textContent = '⏳ Pending Approval';
+        statusDesc.innerHTML = 'Your withdrawal request is waiting for admin approval. Your balance has been deducted.';
+      } else {
+        statusTitle.textContent = '✅ Ready to Withdraw';
+        statusDesc.innerHTML = 'Funds will be deducted immediately upon submission.';
+      }
+
+      displayBank.textContent = userData.bankName || 'Not set';
+      displayAccountName.textContent = userData.accountName || 'Not set';
+      displayAccountNumberText.textContent = userData.accountNumber || 'Not set';
+
+      if (currentUser) {
+        saveCache({
+          uid: currentUser.uid,
+          name: userData.name,
+          vipLevel: userData.vipLevel,
+          taskBalance: taskBal,
+          referralBalance: refBal,
+          bankName: userData.bankName,
+          accountName: userData.accountName,
+          accountNumber: userData.accountNumber,
+          status: userData.status,
+          phone: userData.phone,
+          timestamp: Date.now()
+        });
+      }
+
+      amountInput.value = '';
+    }
+
+    // ================================================================
+    // LOAD MINI HISTORY – single transaction per withdrawal
+    // ================================================================
+    async function loadMiniHistory(uid) {
+      try {
+        const q = await db.ref('withdrawals').orderByChild('uid').equalTo(uid).once('value');
+        if (!q.exists()) {
+          miniHistoryList.innerHTML = `
+            <div style="text-align:center;padding:8px 0;font-size:0.65rem;color:#6a8a9a;">
+              <i class="fa-regular fa-folder-open"></i> No withdrawal requests yet.
+            </div>
+          `;
+          return;
+        }
+        const items = [];
+        q.forEach(child => {
+          const data = child.val();
+          items.push({ ...data, id: child.key, _date: data.timestamp || 0 });
+        });
+        items.sort((a, b) => b._date - a._date);
+        const recent = items.slice(0, 6);
+
+        let html = '';
+        recent.forEach(item => {
+          const status = item.status || 'pending';
+          const statusText = status.charAt(0).toUpperCase() + status.slice(1);
+          const statusClass = `status-${status}`;
+          const date = item._date ? new Date(item._date).toLocaleDateString() : 'Unknown';
+          const amount = item.netAmount || item.amount || 0;
+          const walletType = item.type || 'task';
+          const isPending = status === 'pending';
+          const icon = isPending ? '⏳' : (status === 'approved' ? '✅' : '❌');
+          html += `
+            <div class="mini-history-item">
+              <div>
+                <span class="amount ${amount >= 0 ? 'positive' : 'negative'}">₦${amount.toLocaleString()}</span>
+                <span style="color:#6a8a9a;font-size:0.6rem;margin-left:6px;">${date}</span>
+                <span style="font-size:0.55rem;color:#1a6bff;margin-left:4px;">${walletType}</span>
+                ${item.reason ? `<span style="font-size:0.5rem;color:#ef4444;margin-left:4px;">(${item.reason})</span>` : ''}
+              </div>
+              <span class="status ${statusClass}">${icon} ${statusText}</span>
+            </div>
+          `;
+        });
+        miniHistoryList.innerHTML = html;
+      } catch (e) {
+        console.error('Mini history error:', e);
+        miniHistoryList.innerHTML = `
+          <div style="text-align:center;padding:8px 0;font-size:0.65rem;color:#ef4444;">
+            <i class="fa-solid fa-circle-exclamation"></i> Error loading history.
+          </div>
+        `;
+      }
+    }
+
+    // ================================================================
+    // LISTEN PENDING – tracks ONE pending transaction per user
+    // ================================================================
+    function listenPending(uid) {
+      if (pendingListenerRef) {
+        pendingListenerRef.off();
+        pendingListenerRef = null;
+      }
+      const ref = db.ref('withdrawals').orderByChild('uid').equalTo(uid);
+      pendingListenerRef = ref;
+      ref.on('value', snap => {
+        let pending = false;
+        pendingWithdrawalKey = null;
+        if (snap.exists()) {
+          snap.forEach(child => {
+            const data = child.val();
+            if (data.status === 'pending') {
+              pending = true;
+              pendingWithdrawalKey = child.key;
+            }
+          });
+        }
+        hasPending = pending;
+        if (userData) updateWithdrawUI();
+      });
+    }
+
+    // ================================================================
+    // LOAD ADMIN SETTINGS
+    // ================================================================
+    async function loadAdminSettings() {
+      try {
+        const taxSnap = await db.ref('settings/withdrawalTax').once('value');
+        const tax = taxSnap.val();
+        if (tax !== null && !isNaN(tax)) withdrawalTax = tax;
+        else withdrawalTax = 10;
+
+        const daySnap = await db.ref('settings/withdrawalDay').once('value');
+        const day = daySnap.val();
+        if (day !== null && !isNaN(day)) {
+          adminSettings = adminSettings || {};
+          adminSettings.withdrawalDay = day;
+        }
+
+        const startSnap = await db.ref('settings/withdrawalStartTime').once('value');
+        const start = startSnap.val();
+        if (start) {
+          adminSettings = adminSettings || {};
+          adminSettings.withdrawalStartTime = start;
+        } else {
+          const startHourSnap = await db.ref('settings/withdrawalStartHour').once('value');
+          const startHour = startHourSnap.val();
+          if (startHour !== null && !isNaN(startHour)) {
+            adminSettings.withdrawalStartTime = String(startHour).padStart(2, '0') + ':00';
+          } else {
+            adminSettings.withdrawalStartTime = '01:00';
+          }
+        }
+
+        const endSnap = await db.ref('settings/withdrawalEndTime').once('value');
+        const end = endSnap.val();
+        if (end) {
+          adminSettings = adminSettings || {};
+          adminSettings.withdrawalEndTime = end;
+        } else {
+          const endHourSnap = await db.ref('settings/withdrawalEndHour').once('value');
+          const endHour = endHourSnap.val();
+          if (endHour !== null && !isNaN(endHour)) {
+            adminSettings.withdrawalEndTime = String(endHour).padStart(2, '0') + ':00';
+          } else {
+            adminSettings.withdrawalEndTime = '06:00';
+          }
+        }
+
+        if (userData) updateWithdrawUI();
+      } catch (e) {
+        console.error('Error loading admin settings:', e);
+      }
+    }
+
+    function listenAdminSettings() {
+      db.ref('settings/withdrawalTax').on('value', snap => {
+        const tax = snap.val();
+        if (tax !== null && !isNaN(tax)) {
+          withdrawalTax = tax;
+          if (userData) updateWithdrawUI();
+        }
+      });
+
+      db.ref('settings/withdrawalDay').on('value', snap => {
+        const day = snap.val();
+        if (day !== null && !isNaN(day)) {
+          adminSettings = adminSettings || {};
+          adminSettings.withdrawalDay = day;
+          if (userData) updateWithdrawUI();
+        }
+      });
+
+      db.ref('settings/withdrawalStartTime').on('value', snap => {
+        const start = snap.val();
+        if (start) {
+          adminSettings = adminSettings || {};
+          adminSettings.withdrawalStartTime = start;
+          if (userData) updateWithdrawUI();
+        }
+      });
+
+      db.ref('settings/withdrawalEndTime').on('value', snap => {
+        const end = snap.val();
+        if (end) {
+          adminSettings = adminSettings || {};
+          adminSettings.withdrawalEndTime = end;
+          if (userData) updateWithdrawUI();
+        }
+      });
+    }
+
+    // ================================================================
+    // POLLING – 2 seconds background sync
+    // ================================================================
+    function startPolling(uid) {
+      if (pollInterval) { clearInterval(pollInterval); }
+      pollInterval = setInterval(async () => {
+        if (!currentUser) return;
+        try {
+          const snap = await db.ref('users/' + uid).once('value');
+          if (snap.exists()) {
+            const freshData = snap.val();
+            if (JSON.stringify(freshData) !== JSON.stringify(userData)) {
+              userData = freshData;
+              updateWithdrawUI();
+              loadMiniHistory(uid);
+            }
+          }
+        } catch (e) { /* silent fail */ }
+      }, 2000);
+    }
+
+    // ================================================================
+    // TRANSFER FROM REFERRAL TO TASK
+    // ================================================================
+    async function transferToTask() {
+      if (isTransferring) return;
+      if (!currentUser || !userData) {
+        showToast('Please login first.', true);
+        return;
+      }
+      if (userData.status === 'banned') {
+        showToast('Account suspended.', true);
+        return;
+      }
+      if (hasPending) {
+        showToast('You have a pending withdrawal. Complete it first.', true);
+        return;
+      }
+      const refBal = userData.referralBalance || 0;
+      if (refBal <= 0) {
+        showToast('No funds in Referral Wallet to transfer.', true);
+        return;
+      }
+
+      const confirm = await Swal.fire({
+        title: 'Transfer Funds?',
+        html: `You are about to transfer <strong>₦${refBal.toLocaleString()}</strong> from your Referral Wallet to your Task Wallet.`,
+        icon: 'question',
+        showCancelButton: true,
+        confirmButtonColor: '#8b5cf6',
+        cancelButtonColor: '#e53e3e',
+        background: '#122a3a',
+        color: '#eef4ff',
+        confirmButtonText: '✅ Transfer Now',
+        cancelButtonText: 'Cancel'
+      });
+      if (!confirm.isConfirmed) return;
+
+      isTransferring = true;
+      transferBtn.disabled = true;
+      transferBtn.innerHTML = '<div class="spinner-small"></div> Transferring...';
+
+      try {
+        const newTask = (userData.taskBalance || 0) + refBal;
+        await db.ref('users/' + currentUser.uid).update({
+          taskBalance: newTask,
+          referralBalance: 0
+        });
+        await db.ref('ledger').push({
+          uid: currentUser.uid,
+          title: `↕ Transfer from Referral to Task Wallet (₦${refBal})`,
+          amount: refBal,
+          type: 'transfer',
+          timestamp: Date.now()
+        });
+        showToast('✅ Transferred ₦' + refBal.toLocaleString() + ' to Task Wallet!');
+
+        const snap = await db.ref('users/' + currentUser.uid).once('value');
+        if (snap.exists()) {
+          userData = snap.val();
+          updateWithdrawUI();
+          loadMiniHistory(currentUser.uid);
+        }
+      } catch (e) {
+        showToast('Error: ' + e.message, true);
+      } finally {
+        isTransferring = false;
+        transferBtn.disabled = false;
+        transferBtn.innerHTML = '<i class="fa-solid fa-arrow-right-arrow-left"></i> Transfer to Task Wallet';
+        updateWithdrawUI();
+      }
+    }
+
+    // ================================================================
+    // SUBMIT WITHDRAWAL – ONE TRANSACTION, INSTANT DEDUCTION
+    // ================================================================
+    withdrawBtn.addEventListener('click', async function() {
+      if (isSubmitting) {
+        showToast('Please wait, your request is already being processed.', true);
+        return;
+      }
+      if (this.disabled) {
+        showToast('Withdrawal conditions not met.', true);
+        return;
+      }
+      if (!currentUser || !userData) {
+        showToast('Please login first.', true);
+        return;
+      }
+      if (userData.vipLevel === 0) {
+        showToast('VIP 1+ required to withdraw.', true);
+        return;
+      }
+      if (hasPending) {
+        showToast('You already have a pending withdrawal request.', true);
+        return;
+      }
+      if (userData.status === 'banned') {
+        showToast('Account suspended.', true);
+        return;
+      }
+      if (!userData.bankName || !userData.accountNumber || userData.bankName === 'Not set' || userData.bankName === '') {
+        showToast('Please add your bank details in the Profile tab first.', true);
+        return;
+      }
+
+      const amount = parseFloat(amountInput.value);
+      if (isNaN(amount) || amount <= 0) {
+        showToast('Please enter a valid amount.', true);
+        return;
+      }
+
+      const vipInfo = VIP_PACKAGES.find(p => p.level === userData.vipLevel) || { dailyRate: 0 };
+      const dailyRate = vipInfo.dailyRate || 0;
+      const taskMin = dailyRate * 30;
+      const referralMin = 1000;
+
+      let taxAmount = 0;
+      let netAmount = amount;
+      if (selectedWallet === 'task') {
+        taxAmount = amount * (withdrawalTax / 100);
+        netAmount = amount - taxAmount;
+        if (netAmount < 0) { showToast('Tax exceeds amount.', true); return; }
+      } else {
+        taxAmount = 0;
+        netAmount = amount;
+      }
+
+      // Validate
+      if (selectedWallet === 'task') {
+        const balance = userData.taskBalance || 0;
+        if (amount > balance) {
+          showToast('Insufficient Task Wallet balance.', true);
+          return;
+        }
+        if (amount < taskMin) {
+          showToast(`Minimum Task withdrawal is ₦${taskMin.toLocaleString()}.`, true);
+          return;
+        }
+        const day = adminSettings?.withdrawalDay || 31;
+        const startStr = adminSettings?.withdrawalStartTime || '01:00';
+        const endStr = adminSettings?.withdrawalEndTime || '06:00';
+        const startMinutes = parseTimeStringToMinutes(startStr) || 60;
+        const endMinutes = parseTimeStringToMinutes(endStr) || 360;
+        const currentDay = getCurrentDay();
+        const currentMinutes = getCurrentTimeMinutes();
+        if (currentDay !== day || currentMinutes < startMinutes || currentMinutes >= endMinutes) {
+          showToast(`Task withdrawals are only available on day ${day} between ${formatTimeFromMinutes(startMinutes)} – ${formatTimeFromMinutes(endMinutes)}.`, true);
+          return;
+        }
+      } else {
+        const balance = userData.referralBalance || 0;
+        if (amount > balance) {
+          showToast('Insufficient Referral Wallet balance.', true);
+          return;
+        }
+        if (amount < referralMin) {
+          showToast(`Minimum Referral withdrawal is ₦${referralMin.toLocaleString()}.`, true);
+          return;
+        }
+        const currentMinutes = getCurrentTimeMinutes();
+        if (currentMinutes < 7 * 60 || currentMinutes >= 19 * 60) {
+          showToast('Referral withdrawals are only available between 7am – 7pm daily.', true);
+          return;
+        }
+      }
+
+      // --- CONFIRMATION with instant deduction notice ---
+      const confirmHtml = `
+        <div style="text-align:left;">
+          <p><strong>Wallet:</strong> ${selectedWallet === 'task' ? 'Task' : 'Referral'}</p>
+          <p><strong>Amount:</strong> ₦${amount.toLocaleString()}</p>
+          ${selectedWallet === 'task' ? `<p><strong>Tax (${withdrawalTax}%):</strong> -₦${taxAmount.toFixed(2).toLocaleString()}</p><p><strong>Net Receivable:</strong> <span style="color:#10b981;font-weight:700;">₦${netAmount.toFixed(2).toLocaleString()}</span></p>` : '<p style="color:#10b981;font-weight:700;">✅ 0% tax – no fee</p>'}
+          <p><strong>Bank:</strong> ${userData.bankName}</p>
+          <p><strong>Account:</strong> ${userData.accountNumber} (${userData.accountName})</p>
+          <hr style="border-color:rgba(239,68,68,0.2);margin:12px 0;" />
+          <p style="color:#ef4444;font-weight:700;font-size:0.8rem;">
+            <i class="fa-solid fa-triangle-exclamation"></i> <strong>Instant Deduction:</strong> This amount will be <strong>deducted immediately</strong> from your wallet.
+          </p>
+          <p style="color:#f59e0b;font-weight:700;font-size:0.8rem;">
+            <i class="fa-regular fa-clock"></i> Admin will review and release payment within 24 hours.
+          </p>
+          <p style="font-size:0.7rem;color:#6a8a9a;">
+            <i class="fa-regular fa-file-lines"></i> <strong>One transaction record</strong> – status changes from <em>pending</em> to <em>approved</em> or <em>rejected</em>.
+          </p>
+          <p style="font-size:0.7rem;color:#6a8a9a;">If rejected, the gross amount will be refunded to your wallet.</p>
+        </div>
+      `;
+
+      const result = await Swal.fire({
+        title: 'Submit Withdrawal Request?',
+        html: confirmHtml,
+        icon: 'warning',
+        background: '#122a3a',
+        color: '#eef4ff',
+        confirmButtonColor: '#f59e0b',
+        cancelButtonColor: '#e53e3e',
+        showCancelButton: true,
+        confirmButtonText: '✅ Deduct & Submit',
+        cancelButtonText: 'Cancel'
+      });
+      if (!result.isConfirmed) return;
+
+      // --- SECONDARY CONFIRMATION ---
+      const fraudCheck = await Swal.fire({
+        title: '⚠️ Final Confirmation',
+        text: `This will deduct ₦${amount.toLocaleString()} from your wallet immediately. Have you earned this amount legitimately?`,
+        icon: 'warning',
+        background: '#122a3a',
+        color: '#eef4ff',
+        confirmButtonColor: '#ef4444',
+        cancelButtonColor: '#6b7280',
+        showCancelButton: true,
+        confirmButtonText: '✅ Yes, deduct now',
+        cancelButtonText: 'Cancel'
+      });
+      if (!fraudCheck.isConfirmed) return;
+
+      // FINAL guard – double-check pending status one more time
+      const pendingCheck = await db.ref('withdrawals').orderByChild('uid').equalTo(currentUser.uid).once('value');
+      let stillPending = false;
+      if (pendingCheck.exists()) {
+        pendingCheck.forEach(child => {
+          if (child.val().status === 'pending') stillPending = true;
+        });
+      }
+      if (stillPending) {
+        showToast('You already have a pending withdrawal request.', true);
+        return;
+      }
+
+      isSubmitting = true;
+      withdrawBtn.disabled = true;
+      withdrawBtn.innerHTML = '<div class="spinner-small"></div> Processing...';
+
+      const loaderInterval = showPaystackLoader();
+
+      try {
+        // 1. IMMEDIATELY DEDUCT THE BALANCE in Firebase
+        const balanceKey = selectedWallet === 'task' ? 'taskBalance' : 'referralBalance';
+        const currentBalance = userData[balanceKey] || 0;
+        const newBalance = currentBalance - amount;
+
+        await db.ref('users/' + currentUser.uid).update({
+          [balanceKey]: newBalance
+        });
+
+        // Update local userData immediately for UI
+        userData[balanceKey] = newBalance;
+        updateWithdrawUI();
+
+        // 2. Create ONE withdrawal record with PENDING status
+        const withdrawalRef = db.ref('withdrawals').push();
+        const withdrawalKey = withdrawalRef.key;
+
+        await withdrawalRef.set({
+          uid: currentUser.uid,
+          username: userData.name || 'User',
+          email: currentUser.email || '',
+          phone: userData.phone || 'N/A',
+          type: selectedWallet,
+          grossAmount: amount,
+          taxWithheld: taxAmount,
+          netAmount: netAmount,
+          bankName: userData.bankName,
+          accountName: userData.accountName,
+          accountNumber: userData.accountNumber,
+          status: 'pending',          // ← single transaction, status changes later
+          timestamp: Date.now(),
+          requestedAt: Date.now(),
+          balanceDeducted: true
+        });
+
+        // 3. Set pending flag to prevent further withdrawals
+        hasPending = true;
+        pendingWithdrawalKey = withdrawalKey;
+        updateWithdrawUI();
+
+        // 4. Telegram messages
+        const msg1 = `
+          🔔 *NEW WITHDRAWAL REQUEST*
+
+          *USER:* ${userData.name || 'User'}
+          *UID:* ${currentUser.uid}
+          *WALLET:* ${selectedWallet}
+          *GROSS:* ₦${amount.toLocaleString()}
+          ${selectedWallet === 'task' ? `*TAX (${withdrawalTax}%):* ₦${taxAmount.toFixed(2)}` : '*TAX:* 0%'}
+          *NET:* ₦${netAmount.toFixed(2)}
+          *BANK:* ${userData.bankName} (${userData.accountNumber})
+          *ACCOUNT NAME:* ${userData.accountName}
+
+          *STATUS:* ⏳ PENDING
+          *BALANCE DEDUCTED:* ✅ YES
+          *REQUEST ID:* \`${withdrawalKey}\`
+          *📌 ONE TRANSACTION – status will change on admin action.*
+        `;
+
+        const msg2 = `
+          💰 *SEND MONEY TO:*
+
+          *Bank:* ${userData.bankName}
+          *Account:* ${userData.accountNumber}
+          *Name:* ${userData.accountName}
+
+          *AMOUNT TO SEND:* ₦${netAmount.toFixed(2)}
+          (Gross: ₦${amount.toFixed(2)}, Tax: ${selectedWallet === 'task' ? `${withdrawalTax}%` : '0%'})
+        `;
+
+        await sendTwoTelegramMessages(msg1, msg2);
+
+        clearInterval(loaderInterval);
+        loaderBarFill.style.width = '100%';
+        await new Promise(resolve => setTimeout(resolve, 600));
+        hidePaystackLoader();
+
+        await Swal.fire({
+          title: '✅ Withdrawal Request Submitted!',
+          html: `
+            <div style="text-align:left;">
+              <p><strong>Amount Deducted:</strong> ₦${amount.toLocaleString()}</p>
+              <p><strong>Wallet:</strong> ${selectedWallet === 'task' ? 'Task' : 'Referral'}</p>
+              ${selectedWallet === 'task' ? `<p><strong>Tax (${withdrawalTax}%):</strong> ₦${taxAmount.toFixed(2)}</p><p><strong>Net:</strong> ₦${netAmount.toFixed(2)}</p>` : '<p style="color:#10b981;">✅ 0% tax</p>'}
+              <p><strong>Bank:</strong> ${userData.bankName}</p>
+              <div style="background:rgba(16,185,129,0.15);padding:12px;border-radius:8px;margin-top:12px;">
+                <p style="color:#10b981;font-weight:700;">✅ Funds deducted from your wallet</p>
+                <p style="font-size:0.7rem;color:#6a8a9a;">Admin has been notified and will release payment within 24 hours.</p>
+              </div>
+              <div style="background:rgba(245,158,11,0.1);padding:12px;border-radius:8px;margin-top:8px;">
+                <p style="color:#f59e0b;font-weight:700;">⏳ Status: PENDING</p>
+                <p style="font-size:0.7rem;color:#6a8a9a;">
+                  <i class="fa-regular fa-file-lines"></i> <strong>One transaction</strong> – status will change to <em>approved</em> or <em>rejected</em>.
+                </p>
+                <p style="font-size:0.7rem;color:#6a8a9a;">If rejected, the gross amount will be refunded to your wallet.</p>
+              </div>
+            </div>
+          `,
+          icon: 'success',
+          background: '#122a3a',
+          color: '#eef4ff',
+          confirmButtonColor: '#1a6bff',
+          timer: 8000
+        });
+
+        amountInput.value = '';
+
+        // Refresh data
+        const snap = await db.ref('users/' + currentUser.uid).once('value');
+        if (snap.exists()) {
+          userData = snap.val();
+          updateWithdrawUI();
+          loadMiniHistory(currentUser.uid);
+        }
+
+      } catch (error) {
+        console.error('Withdrawal error:', error);
+        hidePaystackLoader();
+        showToast('Error processing withdrawal. Please try again.', true);
+      } finally {
+        isSubmitting = false;
+        updateWithdrawUI();
+      }
+    });
+
+    // ================================================================
+    // AUTH STATE OBSERVER
+    // ================================================================
+    auth.onAuthStateChanged(user => {
+      if (user) {
+        currentUser = user;
+
+        const cached = loadCache();
+        if (cached && cached.uid === user.uid) {
+          userData = {
+            name: cached.name || 'User',
+            vipLevel: cached.vipLevel || 0,
+            taskBalance: cached.taskBalance || 0,
+            referralBalance: cached.referralBalance || 0,
+            bankName: cached.bankName || 'Not set',
+            accountName: cached.accountName || 'Not set',
+            accountNumber: cached.accountNumber || 'Not set',
+            status: cached.status || 'active',
+            phone: cached.phone || 'N/A'
+          };
+          updateWithdrawUI();
+        }
+
+        showLoading();
+
+        const userRef = db.ref('users/' + user.uid);
+        if (userListenerRef) {
+          userListenerRef.off();
+          userListenerRef = null;
+        }
+
+        userRef.on('value', snap => {
+          if (snap.exists()) {
+            userData = snap.val();
+            updateWithdrawUI();
+            loadMiniHistory(user.uid);
+            listenPending(user.uid);
+            if (isFirstLoad) {
+              isFirstLoad = false;
+              startPolling(user.uid);
+              hideLoading();
+            }
+          } else {
+            hideLoading();
+            showToast('Account data missing.', true);
+            setTimeout(() => window.location.href = 'index.html', 1500);
+          }
+        });
+        userListenerRef = userRef;
+
+        loadAdminSettings();
+        listenAdminSettings();
+
+      } else {
+        if (pollInterval) { clearInterval(pollInterval); pollInterval = null; }
+        if (userListenerRef) { userListenerRef.off(); userListenerRef = null; }
+        if (pendingListenerRef) { pendingListenerRef.off(); pendingListenerRef = null; }
+        window.location.href = 'index.html';
+      }
+    });
+
+    console.log('✅ SwiftDuel withdraw page – ONE transaction per request. Status changes: pending → approved/rejected.');
+  </script>
+</body>
+</html>
