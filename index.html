@@ -9,7 +9,7 @@
      ============================================================ -->
   <meta property="og:title" content="SwiftDuel – Earn Daily Returns" />
   <meta property="og:description" content="Invest in VIP plans, earn daily, refer friends, and withdraw securely. Start with ₦500." />
-  <meta property="og:image" content="https://swiftduel.name.ng/swiftduel.png" />
+  <meta property="og:image" content="https://swiftduel.name.ng/swiftduel.png?v=2" />
   <meta property="og:image:width" content="1200" />
   <meta property="og:image:height" content="630" />
   <meta property="og:url" content="https://swiftduel.name.ng" />
@@ -18,7 +18,7 @@
   <meta name="twitter:card" content="summary_large_image" />
   <meta name="twitter:title" content="SwiftDuel – Daily Earnings Platform" />
   <meta name="twitter:description" content="Start earning daily with VIP plans. 365‑day contracts, secure bank deposits, 45% referral commission." />
-  <meta name="twitter:image" content="https://swiftduel.name.ng/swiftduel.png" />
+  <meta name="twitter:image" content="https://swiftduel.name.ng/swiftduel.png?v=2" />
   <meta name="theme-color" content="#1a6bff" />
 
   <title>SwiftDuel – Earn Daily | VIP Plans</title>
@@ -100,6 +100,10 @@
     }
     body.light-mode .trust-item strong {
       color: #1a2a3a;
+    }
+    body.light-mode .locked-badge {
+      background: rgba(26,107,255,0.08);
+      color: #1a6bff;
     }
 
     ::-webkit-scrollbar {
@@ -393,6 +397,11 @@
     .input-row-container input::placeholder {
       color: #8aaabc;
     }
+    .input-row-container input:read-only {
+      background: rgba(26, 107, 255, 0.04);
+      color: #1a6bff;
+      font-weight: 600;
+    }
     .input-row-container .toggle-password {
       cursor: pointer;
       color: #8aaabc;
@@ -414,6 +423,20 @@
     }
     .validation-feedback.success {
       color: #10b981;
+    }
+
+    .locked-badge {
+      font-size: 0.6rem;
+      background: rgba(26, 107, 255, 0.08);
+      padding: 2px 10px;
+      border-radius: 30px;
+      color: #1a6bff;
+      font-weight: 700;
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      white-space: nowrap;
+      margin-left: 4px;
     }
 
     /* ---- Buttons ---- */
@@ -838,6 +861,10 @@
     body.dark-mode .input-row-container input::placeholder {
       color: #4a6a8a;
     }
+    body.dark-mode .input-row-container input:read-only {
+      background: rgba(26,107,255,0.1);
+      color: #1a6bff;
+    }
     body.dark-mode .profile-input-wrapper label {
       color: #8aaabc;
     }
@@ -900,6 +927,10 @@
     }
     body.dark-mode .vip-preview-card .daily {
       color: #ff6b6b;
+    }
+    body.dark-mode .locked-badge {
+      background: rgba(26,107,255,0.15);
+      color: #1a6bff;
     }
 
     /* ---- Responsive ---- */
@@ -1149,10 +1180,16 @@
           <div class="validation-feedback" id="passFeedback"></div>
         </div>
         <div class="profile-input-wrapper">
-          <label>Referral Code (optional)</label>
-          <div class="input-row-container">
+          <label>
+            Referral Code
+            <span id="referralLockBadge" class="locked-badge" style="display:none;">
+              <i class="fa-solid fa-lock"></i> Locked
+            </span>
+          </label>
+          <div class="input-row-container" id="refInputContainer">
             <i class="fa-solid fa-gift"></i>
             <input type="text" id="signupRef" placeholder="Enter code if you have one" />
+            <span id="refLockIcon" style="display:none; color:#1a6bff; margin-left:4px;"><i class="fa-solid fa-lock"></i></span>
           </div>
           <div class="validation-feedback" id="refFeedback"></div>
         </div>
@@ -1175,7 +1212,7 @@
   </div> <!-- end app-container -->
 
   <!-- ============================================================
-  JAVASCRIPT – Firebase Auth + Strict Validation
+  JAVASCRIPT – Firebase Auth + Strict Validation + Ref Lock
   ============================================================ -->
   <script>
     // ============================================================
@@ -1212,6 +1249,8 @@
     const signupBtn = document.getElementById('signupBtn');
     const switchToSignup = document.getElementById('switchToSignup');
     const switchToLogin = document.getElementById('switchToLogin');
+    const refLockIcon = document.getElementById('refLockIcon');
+    const referralLockBadge = document.getElementById('referralLockBadge');
 
     const toast = document.getElementById('customToast');
     const toastMsg = document.getElementById('toastMsg');
@@ -1300,6 +1339,39 @@
     }
 
     // ============================================================
+    // 🔒 REFERRAL CODE LOCK – from URL
+    // ============================================================
+    (function lockReferralCode() {
+      const params = new URLSearchParams(window.location.search);
+      const refCode = params.get('ref');
+      if (refCode && refCode.length === 6) {
+        // Pre-fill and lock
+        signupRef.value = refCode.toUpperCase();
+        signupRef.setAttribute('readonly', 'readonly');
+        refLockIcon.style.display = 'inline-block';
+        referralLockBadge.style.display = 'inline-flex';
+        // Show a small note
+        const label = signupRef.closest('.profile-input-wrapper').querySelector('label');
+        if (label) {
+          label.innerHTML = `
+            Referral Code
+            <span class="locked-badge" style="display:inline-flex;">
+              <i class="fa-solid fa-lock"></i> Locked
+            </span>
+          `;
+        }
+        // Also mark that this is a locked referral – skip the remote check on blur
+        signupRef.dataset.locked = 'true';
+        // Remove the placeholder to make it clear
+        signupRef.placeholder = 'Locked (from referrer)';
+        // Set feedback as success
+        refFeedback.className = 'validation-feedback success';
+        refFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Referral code locked from link';
+        refValid = true; // trust the URL
+      }
+    })();
+
+    // ============================================================
     // REAL‑TIME VALIDATION (Signup)
     // ============================================================
     signupName.addEventListener('input', function() {
@@ -1362,10 +1434,16 @@
     });
 
     // ============================================================
-    // REFERRAL CODE CHECK (optional but if entered, must exist)
+    // REFERRAL CODE CHECK (only if not locked)
     // ============================================================
     let refValid = false;
+
     signupRef.addEventListener('blur', async function() {
+      // If locked (from URL), skip the check – we already trust it
+      if (this.dataset.locked === 'true') {
+        refValid = true;
+        return;
+      }
       const code = this.value.trim().toUpperCase();
       if (!code) {
         refFeedback.className = 'validation-feedback';
@@ -1550,7 +1628,7 @@
     // INIT
     // ============================================================
     setAuthMode('login');
-    console.log('✅ SwiftDuel index ready (rugged).');
+    console.log('✅ SwiftDuel index ready – referral code lock active.');
   </script>
 
 </body>
