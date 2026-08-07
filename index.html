@@ -40,8 +40,8 @@
 
     <style>
         /* ============================================================
-           GLOBAL RESET & BASE
-           ============================================================ */
+        GLOBAL RESET & BASE
+        ============================================================ */
         * {
             margin: 0;
             padding: 0;
@@ -746,7 +746,7 @@
             line-height: 1.3;
         }
 
-        /* ---- Testimonials (NEW) ---- */
+        /* ---- Testimonials ---- */
         .testimonials-section {
             padding: 0 20px 20px;
         }
@@ -797,7 +797,7 @@
             margin-top: 6px;
         }
 
-        /* ---- Stats Counter (NEW) ---- */
+        /* ---- Stats Counter ---- */
         .stats-section {
             padding: 0 20px 20px;
         }
@@ -984,15 +984,6 @@
         .loading-overlay.active {
             display: flex;
         }
-        .loading-overlay .spinner {
-            width: 54px;
-            height: 54px;
-            border: 4px solid #dce4f0;
-            border-top: 4px solid #1a6bff;
-            border-radius: 50%;
-            animation: spin 0.8s cubic-bezier(0.6, 0, 0.4, 1) infinite;
-            margin-bottom: 20px;
-        }
         .loading-overlay .spinner-ring {
             position: relative;
             width: 70px;
@@ -1049,8 +1040,8 @@
             background: linear-gradient(90deg, #1a6bff, #10b981);
             border-radius: 4px;
             width: 0%;
-            animation: shimmer 1.5s ease-in-out infinite;
             background-size: 200% 100%;
+            animation: shimmer 1.5s ease-in-out infinite;
         }
 
         /* ---- Dark Mode ---- */
@@ -1184,9 +1175,14 @@
         body.dark-mode .loading-overlay {
             background: rgba(10, 26, 42, 0.92);
         }
-        body.dark-mode .loading-overlay .spinner {
-            border-color: #2a4a5a;
+        body.dark-mode .loading-overlay .spinner-ring .ring {
             border-top-color: #1a6bff;
+        }
+        body.dark-mode .loading-overlay .spinner-ring .ring:nth-child(2) {
+            border-top-color: #10b981;
+        }
+        body.dark-mode .loading-overlay .spinner-ring .ring:nth-child(3) {
+            border-top-color: #f59e0b;
         }
         body.dark-mode .loading-overlay h3 {
             color: #eef4ff;
@@ -1208,7 +1204,7 @@
             color: #fbbf24;
         }
 
-        /* ---- Responsive Enhancements ---- */
+        /* ---- Responsive ---- */
         @media (max-width: 420px) {
             .hero-banner h1 {
                 font-size: 1.3rem;
@@ -1316,7 +1312,6 @@
             }
         }
 
-        /* Touch-friendly improvements */
         @media (hover: none) {
             .btn-submit:hover {
                 transform: none !important;
@@ -1343,7 +1338,6 @@
             }
         }
 
-        /* Reduce motion for accessibility */
         @media (prefers-reduced-motion: reduce) {
             *,
             *::before,
@@ -1362,6 +1356,9 @@
                 animation: none !important;
             }
             .hero-banner .badge {
+                animation: none !important;
+            }
+            .loading-overlay .loader-progress .bar {
                 animation: none !important;
             }
         }
@@ -1503,7 +1500,7 @@
             <div class="feature-card"><i class="fa-solid fa-headset"></i><div><h4>24/7 Support</h4><p>Official Telegram &amp; WhatsApp channels. Real‑time help.</p></div></div>
         </div>
 
-        <!-- ---- LIVE STATS (NEW) ---- -->
+        <!-- ---- LIVE STATS ---- -->
         <div class="stats-section">
             <div class="section-title"><i class="fa-solid fa-chart-simple"></i> Live Stats</div>
             <p style="font-size:0.75rem; color:#4a6a8a; margin-bottom:12px;">Real‑time platform performance.</p>
@@ -1523,7 +1520,7 @@
             </div>
         </div>
 
-        <!-- ---- TESTIMONIALS (NEW) ---- -->
+        <!-- ---- TESTIMONIALS ---- -->
         <div class="testimonials-section">
             <div class="section-title"><i class="fa-solid fa-message"></i> What Our Investors Say</div>
             <p style="font-size:0.75rem; color:#4a6a8a; margin-bottom:12px;">Real stories from real people.</p>
@@ -1704,7 +1701,7 @@
     ============================================================ -->
     <script>
         // ============================================================
-        // FIREBASE CONFIG
+        // 🔥 FIREBASE CONFIG
         // ============================================================
         const firebaseConfig = {
             apiKey: "AIzaSyDQ3uDQ2h61dDNeRowTpItGgrZridn3s40",
@@ -1720,488 +1717,528 @@
         const db = firebase.database();
 
         // ============================================================
-        // DOM REFS
-        // ============================================================
-        const loginTab = document.getElementById('loginTab');
-        const signupTab = document.getElementById('signupTab');
-        const loginForm = document.getElementById('loginForm');
-        const signupForm = document.getElementById('signupForm');
-        const loginEmail = document.getElementById('loginEmail');
-        const loginPass = document.getElementById('loginPass');
-        const loginBtn = document.getElementById('loginBtn');
-        const signupName = document.getElementById('signupName');
-        const signupEmail = document.getElementById('signupEmail');
-        const signupPhone = document.getElementById('signupPhone');
-        const signupPass = document.getElementById('signupPass');
-        const signupRef = document.getElementById('signupRef');
-        const signupBtn = document.getElementById('signupBtn');
-        const switchToSignup = document.getElementById('switchToSignup');
-        const switchToLogin = document.getElementById('switchToLogin');
-        const refLockIcon = document.getElementById('refLockIcon');
-        const referralLockBadge = document.getElementById('referralLockBadge');
-
-        const toast = document.getElementById('customToast');
-        const toastMsg = document.getElementById('toastMsg');
-        const loadingOverlay = document.getElementById('loadingOverlay');
-        const loadingMessage = document.getElementById('loadingMessage');
-        const loaderBar = document.getElementById('loaderBar');
-        const darkToggle = document.getElementById('darkModeToggle');
-
-        // feedback elements
-        const nameFeedback = document.getElementById('nameFeedback');
-        const emailFeedback = document.getElementById('emailFeedback');
-        const phoneFeedback = document.getElementById('phoneFeedback');
-        const passFeedback = document.getElementById('passFeedback');
-        const refFeedback = document.getElementById('refFeedback');
-
-        // ============================================================
-        // TOAST & LOADING
-        // ============================================================
-        function showToast(msg, isError = false) {
-            const icon = toast.querySelector('i');
-            icon.className = isError ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
-            icon.style.color = isError ? '#ef4444' : '#10b981';
-            toastMsg.innerText = msg;
-            toast.classList.add('show');
-            clearTimeout(toast._timer);
-            toast._timer = setTimeout(() => toast.classList.remove('show'), 4000);
-        }
-
-        function showLoading(msg = 'Processing your request...') {
-            loadingMessage.textContent = msg;
-            loadingOverlay.classList.add('active');
-            // Animate the progress bar
-            let progress = 0;
-            if (loaderBar._interval) clearInterval(loaderBar._interval);
-            loaderBar.style.width = '0%';
-            loaderBar._interval = setInterval(() => {
-                progress += Math.random() * 12 + 3;
-                if (progress > 90) progress = 90;
-                loaderBar.style.width = progress + '%';
-            }, 200);
-        }
-
-        function hideLoading() {
-            if (loaderBar._interval) {
-                clearInterval(loaderBar._interval);
-                loaderBar._interval = null;
-            }
-            loaderBar.style.width = '100%';
-            setTimeout(() => {
-                loadingOverlay.classList.remove('active');
-                loaderBar.style.width = '0%';
-            }, 350);
-        }
-
-        // ============================================================
-        // DARK MODE
-        // ============================================================
-        (function() {
-            const saved = localStorage.getItem('swiftTheme');
-            if (saved === 'dark') {
-                document.body.classList.add('dark-mode');
-                darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
-            }
-            darkToggle.addEventListener('click', function() {
-                const isDark = document.body.classList.toggle('dark-mode');
-                if (isDark) {
-                    darkToggle.innerHTML = '<i class="fa-solid fa-sun"></i>';
-                    localStorage.setItem('swiftTheme', 'dark');
-                } else {
-                    darkToggle.innerHTML = '<i class="fa-solid fa-moon"></i>';
-                    localStorage.setItem('swiftTheme', 'light');
-                }
-            });
-        })();
-
-        // ============================================================
-        // UI TOGGLE (Login / Signup)
-        // ============================================================
-        function setAuthMode(mode) {
-            if (mode === 'login') {
-                loginTab.classList.add('active');
-                signupTab.classList.remove('active');
-                loginForm.style.display = 'block';
-                signupForm.style.display = 'none';
-                document.getElementById('authSub').innerText = 'Sign in to your account.';
-            } else {
-                signupTab.classList.add('active');
-                loginTab.classList.remove('active');
-                signupForm.style.display = 'block';
-                loginForm.style.display = 'none';
-                document.getElementById('authSub').innerText = 'Create your SwiftDuel account.';
-            }
-        }
-        loginTab.addEventListener('click', () => setAuthMode('login'));
-        signupTab.addEventListener('click', () => setAuthMode('signup'));
-        switchToSignup.addEventListener('click', () => setAuthMode('signup'));
-        switchToLogin.addEventListener('click', () => setAuthMode('login'));
-
-        // ============================================================
-        // PASSWORD TOGGLE
-        // ============================================================
-        function togglePassword(id, element) {
-            const input = document.getElementById(id);
-            if (input.type === 'password') {
-                input.type = 'text';
-                element.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
-            } else {
-                input.type = 'password';
-                element.innerHTML = '<i class="fa-regular fa-eye"></i>';
-            }
-        }
-
-        // ============================================================
-        // 🔒 REFERRAL CODE LOCK – from URL
-        // ============================================================
-        (function lockReferralCode() {
-            const params = new URLSearchParams(window.location.search);
-            const refCode = params.get('ref');
-            if (refCode && refCode.length === 6) {
-                signupRef.value = refCode.toUpperCase();
-                signupRef.setAttribute('readonly', 'readonly');
-                refLockIcon.style.display = 'inline-block';
-                referralLockBadge.style.display = 'inline-flex';
-                const label = signupRef.closest('.profile-input-wrapper').querySelector('label');
-                if (label) {
-                    label.innerHTML = `
-                        Referral Code
-                        <span class="locked-badge" style="display:inline-flex;">
-                            <i class="fa-solid fa-lock"></i> Locked
-                        </span>
-                    `;
-                }
-                signupRef.dataset.locked = 'true';
-                signupRef.placeholder = 'Locked (from referrer)';
-                refFeedback.className = 'validation-feedback success';
-                refFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Referral code locked from link';
-                refValid = true;
-            }
-        })();
-
-        // ============================================================
-        // REAL‑TIME VALIDATION (Signup)
-        // ============================================================
-        signupName.addEventListener('input', function() {
-            const val = this.value.trim();
-            if (val.length < 2) {
-                nameFeedback.className = 'validation-feedback error';
-                nameFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Minimum 2 characters';
-            } else {
-                nameFeedback.className = 'validation-feedback success';
-                nameFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Looks good';
-            }
-        });
-
-        signupEmail.addEventListener('input', function() {
-            const val = this.value.trim();
-            if (!val) {
-                emailFeedback.className = 'validation-feedback error';
-                emailFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Email is required';
-            } else if (!val.endsWith('@gmail.com')) {
-                emailFeedback.className = 'validation-feedback error';
-                emailFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Only Gmail addresses are allowed';
-            } else {
-                emailFeedback.className = 'validation-feedback success';
-                emailFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid Gmail';
-            }
-        });
-
-        signupPhone.addEventListener('input', function() {
-            const val = this.value.replace(/\D/g, '');
-            if (val.length === 0) {
-                phoneFeedback.className = 'validation-feedback error';
-                phoneFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Phone number required';
-            } else if (val.length !== 11) {
-                phoneFeedback.className = 'validation-feedback error';
-                phoneFeedback.innerHTML =
-                `<i class="fa-solid fa-circle-exclamation"></i> Must be exactly 11 digits (${val.length}/11)`;
-            } else {
-                phoneFeedback.className = 'validation-feedback success';
-                phoneFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid 11‑digit number';
-            }
-        });
-
-        signupPass.addEventListener('input', function() {
-            const val = this.value;
-            const hasUpper = /[A-Z]/.test(val);
-            const hasLower = /[a-z]/.test(val);
-            const hasNumber = /\d/.test(val);
-            const minLength = val.length >= 8;
-            let errors = [];
-            if (!minLength) errors.push('at least 8 chars');
-            if (!hasUpper) errors.push('one uppercase');
-            if (!hasLower) errors.push('one lowercase');
-            if (!hasNumber) errors.push('one number');
-            if (errors.length === 0) {
-                passFeedback.className = 'validation-feedback success';
-                passFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Strong password';
-            } else {
-                passFeedback.className = 'validation-feedback error';
-                passFeedback.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${errors.join(', ')}`;
-            }
-        });
-
-        // ============================================================
-        // REFERRAL CODE CHECK (only if not locked)
+        // 📦 VARIABLES – declared FIRST to avoid ReferenceError
         // ============================================================
         let refValid = false;
+        let toastTimer = null;
+        let loaderInterval = null;
 
-        signupRef.addEventListener('blur', async function() {
-            if (this.dataset.locked === 'true') {
-                refValid = true;
-                return;
-            }
-            const code = this.value.trim().toUpperCase();
-            if (!code) {
-                refFeedback.className = 'validation-feedback';
-                refFeedback.innerHTML = '';
-                refValid = true;
-                return;
-            }
+        // ============================================================
+        // 🧩 DOM REFS – populated after DOM is ready
+        // ============================================================
+        let loginTab, signupTab, loginForm, signupForm;
+        let loginEmail, loginPass, loginBtn;
+        let signupName, signupEmail, signupPhone, signupPass, signupRef, signupBtn;
+        let switchToSignup, switchToLogin;
+        let refLockIcon, referralLockBadge;
+        let nameFeedback, emailFeedback, phoneFeedback, passFeedback, refFeedback;
+        let toastEl, toastMsgEl, loadingOverlay, loadingMessage, loaderBar;
+        let darkToggleEl;
+
+        // ============================================================
+        // 🚀 DOM READY – safe execution
+        // ============================================================
+        document.addEventListener('DOMContentLoaded', function() {
+
+            // ---- Grab all DOM elements ----
+            loginTab = document.getElementById('loginTab');
+            signupTab = document.getElementById('signupTab');
+            loginForm = document.getElementById('loginForm');
+            signupForm = document.getElementById('signupForm');
+            loginEmail = document.getElementById('loginEmail');
+            loginPass = document.getElementById('loginPass');
+            loginBtn = document.getElementById('loginBtn');
+            signupName = document.getElementById('signupName');
+            signupEmail = document.getElementById('signupEmail');
+            signupPhone = document.getElementById('signupPhone');
+            signupPass = document.getElementById('signupPass');
+            signupRef = document.getElementById('signupRef');
+            signupBtn = document.getElementById('signupBtn');
+            switchToSignup = document.getElementById('switchToSignup');
+            switchToLogin = document.getElementById('switchToLogin');
+            refLockIcon = document.getElementById('refLockIcon');
+            referralLockBadge = document.getElementById('referralLockBadge');
+            nameFeedback = document.getElementById('nameFeedback');
+            emailFeedback = document.getElementById('emailFeedback');
+            phoneFeedback = document.getElementById('phoneFeedback');
+            passFeedback = document.getElementById('passFeedback');
+            refFeedback = document.getElementById('refFeedback');
+            toastEl = document.getElementById('customToast');
+            toastMsgEl = document.getElementById('toastMsg');
+            loadingOverlay = document.getElementById('loadingOverlay');
+            loadingMessage = document.getElementById('loadingMessage');
+            loaderBar = document.getElementById('loaderBar');
+            darkToggleEl = document.getElementById('darkModeToggle');
+
+            // ---- 🔒 Referral Code Lock from URL ----
             try {
-                const snap = await db.ref('users').orderByChild('referralCode').equalTo(code).once('value');
-                if (snap.exists()) {
-                    refFeedback.className = 'validation-feedback success';
-                    refFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid referral code';
+                const params = new URLSearchParams(window.location.search);
+                const refCode = params.get('ref');
+                if (refCode && refCode.length === 6 && signupRef) {
+                    const code = refCode.toUpperCase();
+                    signupRef.value = code;
+                    signupRef.setAttribute('readonly', 'readonly');
+                    signupRef.dataset.locked = 'true';
+                    signupRef.placeholder = 'Locked (from referrer)';
+                    if (refLockIcon) refLockIcon.style.display = 'inline-block';
+                    if (referralLockBadge) referralLockBadge.style.display = 'inline-flex';
+                    if (refFeedback) {
+                        refFeedback.className = 'validation-feedback success';
+                        refFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Referral code locked from link';
+                    }
                     refValid = true;
-                } else {
-                    refFeedback.className = 'validation-feedback error';
-                    refFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Invalid referral code';
-                    refValid = false;
+                    // Update label
+                    const label = signupRef.closest('.profile-input-wrapper')?.querySelector('label');
+                    if (label) {
+                        label.innerHTML = `
+                            Referral Code
+                            <span class="locked-badge" style="display:inline-flex;">
+                                <i class="fa-solid fa-lock"></i> Locked
+                            </span>
+                        `;
+                    }
                 }
             } catch (e) {
-                refFeedback.className = 'validation-feedback error';
-                refFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Error checking code';
-                refValid = false;
-            }
-        });
-
-        // ============================================================
-        // AUTH FUNCTIONS – Optimized for Speed
-        // ============================================================
-        function generateRefCode() {
-            const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-            let code = '';
-            for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
-            return code;
-        }
-
-        // ---- SIGN IN (fast) ----
-        async function signIn() {
-            const email = loginEmail.value.trim();
-            const pass = loginPass.value;
-            if (!email || !pass) {
-                showToast('Please fill in both email and password.', true);
-                return;
-            }
-            showLoading('Signing in...');
-            try {
-                await auth.signInWithEmailAndPassword(email, pass);
-                hideLoading();
-                showToast('Welcome back! 🚀');
-                setTimeout(() => window.location.href = 'dashboard.html', 1200);
-            } catch (err) {
-                hideLoading();
-                let msg = 'Login failed. Please try again.';
-                if (err.code === 'auth/user-not-found') msg = 'No account found with this email.';
-                else if (err.code === 'auth/wrong-password') msg = 'Incorrect password.';
-                else if (err.code === 'auth/too-many-requests') msg = 'Too many failed attempts. Please wait a few minutes.';
-                showToast(msg, true);
-            }
-        }
-
-        // ---- SIGN UP (instant push to Firebase) ----
-        async function signUp() {
-            const name = signupName.value.trim();
-            const email = signupEmail.value.trim();
-            const phone = signupPhone.value.trim();
-            const pass = signupPass.value;
-            const ref = signupRef.value.trim().toUpperCase() || null;
-
-            // ---- Final validation ----
-            if (!name || name.length < 2) {
-                showToast('Please enter your full name (min 2 chars).', true);
-                return;
-            }
-            if (!email || !email.endsWith('@gmail.com')) {
-                showToast('Only Gmail addresses are allowed.', true);
-                return;
-            }
-            const phoneClean = phone.replace(/\D/g, '');
-            if (phoneClean.length !== 11) {
-                showToast('Phone number must be exactly 11 digits.', true);
-                return;
-            }
-            const hasUpper = /[A-Z]/.test(pass);
-            const hasLower = /[a-z]/.test(pass);
-            const hasNumber = /\d/.test(pass);
-            if (pass.length < 8 || !hasUpper || !hasLower || !hasNumber) {
-                showToast('Password must be 8+ chars with uppercase, lowercase, and number.', true);
-                return;
-            }
-            if (ref && !refValid) {
-                showToast('Invalid referral code. Please check and try again.', true);
-                return;
+                console.warn('Referral lock skipped:', e);
+                // Non‑critical – continue
             }
 
-            showLoading('Creating your account...');
-
-            try {
-                // 1. Check if email exists (fast)
-                const emailSnap = await db.ref('users').orderByChild('email').equalTo(email).once('value');
-                if (emailSnap.exists()) {
-                    hideLoading();
-                    showToast('Email already registered. Please sign in.', true);
-                    return;
+            // ---- Dark Mode ----
+            (function initDark() {
+                if (!darkToggleEl) return;
+                const saved = localStorage.getItem('swiftTheme');
+                if (saved === 'dark') {
+                    document.body.classList.add('dark-mode');
+                    darkToggleEl.innerHTML = '<i class="fa-solid fa-sun"></i>';
                 }
-                const phoneSnap = await db.ref('users').orderByChild('phone').equalTo(phoneClean).once('value');
-                if (phoneSnap.exists()) {
-                    hideLoading();
-                    showToast('Phone number already registered.', true);
-                    return;
-                }
-
-                // 2. Create Firebase Auth user (fast)
-                const cred = await auth.createUserWithEmailAndPassword(email, pass);
-                const uid = cred.user.uid;
-                const refCode = generateRefCode();
-
-                // 3. Write to Firebase Realtime Database – INSTANT push
-                await db.ref('users/' + uid).set({
-                    name: name,
-                    email: email,
-                    phone: phoneClean,
-                    vipLevel: 0,
-                    vipUpgradedAt: Date.now(),
-                    lastClaimDate: 0,
-                    taskBalance: 0,
-                    referralBalance: 0,
-                    referralCode: refCode,
-                    referredBy: ref || '',
-                    bankName: '',
-                    bankAccount: '',
-                    bankHolder: '',
-                    createdAt: Date.now()
-                });
-
-                // 4. Handle referral (async – doesn't block)
-                if (ref) {
-                    const refSnap = await db.ref('users').orderByChild('referralCode').equalTo(ref).once('value');
-                    if (refSnap.exists()) {
-                        const referrerUid = Object.keys(refSnap.val())[0];
-                        await db.ref('referrals').push({
-                            referrerUid: referrerUid,
-                            referredUid: uid,
-                            status: 'pending',
-                            vipPurchaseAmount: 0,
-                            commission: 0,
-                            timestamp: Date.now()
-                        });
+                darkToggleEl.addEventListener('click', function() {
+                    const isDark = document.body.classList.toggle('dark-mode');
+                    if (isDark) {
+                        darkToggleEl.innerHTML = '<i class="fa-solid fa-sun"></i>';
+                        localStorage.setItem('swiftTheme', 'dark');
+                    } else {
+                        darkToggleEl.innerHTML = '<i class="fa-solid fa-moon"></i>';
+                        localStorage.setItem('swiftTheme', 'light');
                     }
+                });
+            })();
+
+            // ---- UI Toggle ----
+            function setAuthMode(mode) {
+                if (mode === 'login') {
+                    if (loginTab) loginTab.classList.add('active');
+                    if (signupTab) signupTab.classList.remove('active');
+                    if (loginForm) loginForm.style.display = 'block';
+                    if (signupForm) signupForm.style.display = 'none';
+                    const sub = document.getElementById('authSub');
+                    if (sub) sub.innerText = 'Sign in to your account.';
+                } else {
+                    if (signupTab) signupTab.classList.add('active');
+                    if (loginTab) loginTab.classList.remove('active');
+                    if (signupForm) signupForm.style.display = 'block';
+                    if (loginForm) loginForm.style.display = 'none';
+                    const sub = document.getElementById('authSub');
+                    if (sub) sub.innerText = 'Create your SwiftDuel account.';
+                }
+            }
+
+            if (loginTab) loginTab.addEventListener('click', () => setAuthMode('login'));
+            if (signupTab) signupTab.addEventListener('click', () => setAuthMode('signup'));
+            if (switchToSignup) switchToSignup.addEventListener('click', () => setAuthMode('signup'));
+            if (switchToLogin) switchToLogin.addEventListener('click', () => setAuthMode('login'));
+
+            // ---- Password Toggle (global) ----
+            window.togglePassword = function(id, element) {
+                const input = document.getElementById(id);
+                if (!input) return;
+                if (input.type === 'password') {
+                    input.type = 'text';
+                    element.innerHTML = '<i class="fa-regular fa-eye-slash"></i>';
+                } else {
+                    input.type = 'password';
+                    element.innerHTML = '<i class="fa-regular fa-eye"></i>';
+                }
+            };
+
+            // ---- Real‑time Validation ----
+            if (signupName) {
+                signupName.addEventListener('input', function() {
+                    const val = this.value.trim();
+                    if (val.length < 2) {
+                        nameFeedback.className = 'validation-feedback error';
+                        nameFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Minimum 2 characters';
+                    } else {
+                        nameFeedback.className = 'validation-feedback success';
+                        nameFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Looks good';
+                    }
+                });
+            }
+
+            if (signupEmail) {
+                signupEmail.addEventListener('input', function() {
+                    const val = this.value.trim();
+                    if (!val) {
+                        emailFeedback.className = 'validation-feedback error';
+                        emailFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Email is required';
+                    } else if (!val.endsWith('@gmail.com')) {
+                        emailFeedback.className = 'validation-feedback error';
+                        emailFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Only Gmail addresses are allowed';
+                    } else {
+                        emailFeedback.className = 'validation-feedback success';
+                        emailFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid Gmail';
+                    }
+                });
+            }
+
+            if (signupPhone) {
+                signupPhone.addEventListener('input', function() {
+                    const val = this.value.replace(/\D/g, '');
+                    if (val.length === 0) {
+                        phoneFeedback.className = 'validation-feedback error';
+                        phoneFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Phone number required';
+                    } else if (val.length !== 11) {
+                        phoneFeedback.className = 'validation-feedback error';
+                        phoneFeedback.innerHTML =
+                            `<i class="fa-solid fa-circle-exclamation"></i> Must be exactly 11 digits (${val.length}/11)`;
+                    } else {
+                        phoneFeedback.className = 'validation-feedback success';
+                        phoneFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid 11‑digit number';
+                    }
+                });
+            }
+
+            if (signupPass) {
+                signupPass.addEventListener('input', function() {
+                    const val = this.value;
+                    const hasUpper = /[A-Z]/.test(val);
+                    const hasLower = /[a-z]/.test(val);
+                    const hasNumber = /\d/.test(val);
+                    const minLength = val.length >= 8;
+                    let errors = [];
+                    if (!minLength) errors.push('at least 8 chars');
+                    if (!hasUpper) errors.push('one uppercase');
+                    if (!hasLower) errors.push('one lowercase');
+                    if (!hasNumber) errors.push('one number');
+                    if (errors.length === 0) {
+                        passFeedback.className = 'validation-feedback success';
+                        passFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Strong password';
+                    } else {
+                        passFeedback.className = 'validation-feedback error';
+                        passFeedback.innerHTML = `<i class="fa-solid fa-circle-exclamation"></i> ${errors.join(', ')}`;
+                    }
+                });
+            }
+
+            // ---- Referral code check (only if not locked) ----
+            if (signupRef) {
+                signupRef.addEventListener('blur', async function() {
+                    if (this.dataset.locked === 'true') {
+                        refValid = true;
+                        return;
+                    }
+                    const code = this.value.trim().toUpperCase();
+                    if (!code) {
+                        refFeedback.className = 'validation-feedback';
+                        refFeedback.innerHTML = '';
+                        refValid = true;
+                        return;
+                    }
+                    try {
+                        const snap = await db.ref('users').orderByChild('referralCode').equalTo(code).once('value');
+                        if (snap.exists()) {
+                            refFeedback.className = 'validation-feedback success';
+                            refFeedback.innerHTML = '<i class="fa-solid fa-circle-check"></i> Valid referral code';
+                            refValid = true;
+                        } else {
+                            refFeedback.className = 'validation-feedback error';
+                            refFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Invalid referral code';
+                            refValid = false;
+                        }
+                    } catch (e) {
+                        refFeedback.className = 'validation-feedback error';
+                        refFeedback.innerHTML = '<i class="fa-solid fa-circle-exclamation"></i> Error checking code';
+                        refValid = false;
+                    }
+                });
+            }
+
+            // ---- Toast & Loading ----
+            function showToast(msg, isError = false) {
+                if (!toastEl || !toastMsgEl) return;
+                const icon = toastEl.querySelector('i');
+                if (icon) {
+                    icon.className = isError ? 'fa-solid fa-triangle-exclamation' : 'fa-solid fa-circle-check';
+                    icon.style.color = isError ? '#ef4444' : '#10b981';
+                }
+                toastMsgEl.innerText = msg;
+                toastEl.classList.add('show');
+                if (toastTimer) clearTimeout(toastTimer);
+                toastTimer = setTimeout(() => toastEl.classList.remove('show'), 4000);
+            }
+
+            function showLoading(msg = 'Processing your request...') {
+                if (loadingMessage) loadingMessage.textContent = msg;
+                if (loadingOverlay) loadingOverlay.classList.add('active');
+                let progress = 0;
+                if (loaderBar) {
+                    loaderBar.style.width = '0%';
+                    if (loaderInterval) clearInterval(loaderInterval);
+                    loaderInterval = setInterval(() => {
+                        progress += Math.random() * 12 + 3;
+                        if (progress > 90) progress = 90;
+                        if (loaderBar) loaderBar.style.width = progress + '%';
+                    }, 200);
+                }
+            }
+
+            function hideLoading() {
+                if (loaderInterval) {
+                    clearInterval(loaderInterval);
+                    loaderInterval = null;
+                }
+                if (loaderBar) loaderBar.style.width = '100%';
+                if (loadingOverlay) {
+                    setTimeout(() => {
+                        loadingOverlay.classList.remove('active');
+                        if (loaderBar) loaderBar.style.width = '0%';
+                    }, 350);
+                } else {
+                    if (loaderBar) loaderBar.style.width = '0%';
+                }
+            }
+
+            // ---- AUTH: Sign In ----
+            async function signIn() {
+                if (!loginEmail || !loginPass) return;
+                const email = loginEmail.value.trim();
+                const pass = loginPass.value;
+                if (!email || !pass) {
+                    showToast('Please fill in both email and password.', true);
+                    return;
+                }
+                showLoading('Signing in...');
+                try {
+                    await auth.signInWithEmailAndPassword(email, pass);
+                    hideLoading();
+                    showToast('Welcome back! 🚀');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1200);
+                } catch (err) {
+                    hideLoading();
+                    let msg = 'Login failed. Please try again.';
+                    if (err.code === 'auth/user-not-found') msg = 'No account found with this email.';
+                    else if (err.code === 'auth/wrong-password') msg = 'Incorrect password.';
+                    else if (err.code === 'auth/too-many-requests') msg =
+                    'Too many failed attempts. Please wait a few minutes.';
+                    showToast(msg, true);
+                }
+            }
+
+            // ---- AUTH: Sign Up ----
+            function generateRefCode() {
+                const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+                let code = '';
+                for (let i = 0; i < 6; i++) code += chars.charAt(Math.floor(Math.random() * chars.length));
+                return code;
+            }
+
+            async function signUp() {
+                if (!signupName || !signupEmail || !signupPhone || !signupPass || !signupRef) return;
+                const name = signupName.value.trim();
+                const email = signupEmail.value.trim();
+                const phone = signupPhone.value.trim();
+                const pass = signupPass.value;
+                const ref = signupRef.value.trim().toUpperCase() || null;
+
+                // ---- Final validation ----
+                if (!name || name.length < 2) {
+                    showToast('Please enter your full name (min 2 chars).', true);
+                    return;
+                }
+                if (!email || !email.endsWith('@gmail.com')) {
+                    showToast('Only Gmail addresses are allowed.', true);
+                    return;
+                }
+                const phoneClean = phone.replace(/\D/g, '');
+                if (phoneClean.length !== 11) {
+                    showToast('Phone number must be exactly 11 digits.', true);
+                    return;
+                }
+                const hasUpper = /[A-Z]/.test(pass);
+                const hasLower = /[a-z]/.test(pass);
+                const hasNumber = /\d/.test(pass);
+                if (pass.length < 8 || !hasUpper || !hasLower || !hasNumber) {
+                    showToast('Password must be 8+ chars with uppercase, lowercase, and number.', true);
+                    return;
+                }
+                if (ref && !refValid) {
+                    showToast('Invalid referral code. Please check and try again.', true);
+                    return;
                 }
 
-                hideLoading();
-                showToast('Account created! 🎉');
-                setTimeout(() => window.location.href = 'dashboard.html', 1200);
+                showLoading('Creating your account...');
 
-            } catch (err) {
-                hideLoading();
-                let msg = 'Registration failed. Please try again.';
-                if (err.code === 'auth/email-already-in-use') msg = 'Email already registered. Please sign in.';
-                else if (err.code === 'auth/weak-password') msg = 'Password too weak. Use at least 8 chars with mix.';
-                showToast(msg, true);
+                try {
+                    // 1. Check email & phone (fast)
+                    const emailSnap = await db.ref('users').orderByChild('email').equalTo(email).once('value');
+                    if (emailSnap.exists()) {
+                        hideLoading();
+                        showToast('Email already registered. Please sign in.', true);
+                        return;
+                    }
+                    const phoneSnap = await db.ref('users').orderByChild('phone').equalTo(phoneClean).once('value');
+                    if (phoneSnap.exists()) {
+                        hideLoading();
+                        showToast('Phone number already registered.', true);
+                        return;
+                    }
+
+                    // 2. Create Firebase Auth user
+                    const cred = await auth.createUserWithEmailAndPassword(email, pass);
+                    const uid = cred.user.uid;
+                    const refCode = generateRefCode();
+
+                    // 3. Write to Firebase Realtime Database – INSTANT push
+                    await db.ref('users/' + uid).set({
+                        name: name,
+                        email: email,
+                        phone: phoneClean,
+                        vipLevel: 0,
+                        vipUpgradedAt: Date.now(),
+                        lastClaimDate: 0,
+                        taskBalance: 0,
+                        referralBalance: 0,
+                        referralCode: refCode,
+                        referredBy: ref || '',
+                        bankName: '',
+                        bankAccount: '',
+                        bankHolder: '',
+                        createdAt: Date.now()
+                    });
+
+                    // 4. Handle referral (async, non-blocking)
+                    if (ref) {
+                        try {
+                            const refSnap = await db.ref('users').orderByChild('referralCode').equalTo(ref).once(
+                            'value');
+                            if (refSnap.exists()) {
+                                const referrerUid = Object.keys(refSnap.val())[0];
+                                await db.ref('referrals').push({
+                                    referrerUid: referrerUid,
+                                    referredUid: uid,
+                                    status: 'pending',
+                                    vipPurchaseAmount: 0,
+                                    commission: 0,
+                                    timestamp: Date.now()
+                                });
+                            }
+                        } catch (e) { /* ignore */ }
+                    }
+
+                    hideLoading();
+                    showToast('Account created! 🎉');
+                    setTimeout(() => window.location.href = 'dashboard.html', 1200);
+
+                } catch (err) {
+                    hideLoading();
+                    let msg = 'Registration failed. Please try again.';
+                    if (err.code === 'auth/email-already-in-use') msg = 'Email already registered. Please sign in.';
+                    else if (err.code === 'auth/weak-password') msg =
+                    'Password too weak. Use at least 8 chars with mix.';
+                    showToast(msg, true);
+                }
             }
-        }
 
-        // ---- Attach events ----
-        loginBtn.addEventListener('click', signIn);
-        signupBtn.addEventListener('click', signUp);
+            // ---- Attach events ----
+            if (loginBtn) loginBtn.addEventListener('click', signIn);
+            if (signupBtn) signupBtn.addEventListener('click', signUp);
 
-        loginPass.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                signIn();
+            if (loginPass) {
+                loginPass.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault();
+                        signIn(); }
+                });
             }
-        });
-        signupPass.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') {
-                e.preventDefault();
-                signUp();
+            if (signupPass) {
+                signupPass.addEventListener('keydown', (e) => {
+                    if (e.key === 'Enter') { e.preventDefault();
+                        signUp(); }
+                });
             }
-        });
 
-        // ============================================================
-        // AUTH STATE OBSERVER
-        // ============================================================
-        auth.onAuthStateChanged((user) => {
-            // If user is logged in, they can go to dashboard
-        });
-
-        // ============================================================
-        // FAQ ACCORDION
-        // ============================================================
-        document.querySelectorAll('.faq-item').forEach(item => {
-            item.addEventListener('click', function() {
-                this.classList.toggle('active');
+            // ---- Auth state ----
+            auth.onAuthStateChanged((user) => {
+                // User may be redirected to dashboard
             });
-        });
 
-        // ============================================================
-        // LIVE STATS – Animated counter
-        // ============================================================
-        (function animateStats() {
-            const targets = [
-                { el: document.getElementById('statUsers'), val: 12847, suffix: '' },
-                { el: document.getElementById('statPayouts'), val: 4.2, suffix: 'M', prefix: '₦' },
-                { el: document.getElementById('statActive'), val: 2341, suffix: '' }
-            ];
+            // ---- FAQ Accordion ----
+            document.querySelectorAll('.faq-item').forEach(item => {
+                item.addEventListener('click', function() {
+                    this.classList.toggle('active');
+                });
+            });
 
-            const observer = new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        targets.forEach((t, idx) => {
-                            const el = t.el;
-                            const target = t.val;
-                            const duration = 1200 + idx * 200;
-                            const start = performance.now();
+            // ---- Live Stats Animation ----
+            (function animateStats() {
+                const statUsers = document.getElementById('statUsers');
+                const statPayouts = document.getElementById('statPayouts');
+                const statActive = document.getElementById('statActive');
+                if (!statUsers || !statPayouts || !statActive) return;
 
-                            function update(now) {
-                                const elapsed = now - start;
-                                const progress = Math.min(elapsed / duration, 1);
-                                const eased = 1 - Math.pow(1 - progress, 3);
-                                const current = Math.round(eased * target);
-                                if (t.prefix) {
-                                    el.textContent = t.prefix + current.toFixed(1) + t.suffix;
-                                } else {
-                                    el.textContent = current.toLocaleString() + t.suffix;
-                                }
-                                if (progress < 1) {
-                                    requestAnimationFrame(update);
-                                } else {
+                const targets = [
+                    { el: statUsers, val: 12847, suffix: '' },
+                    { el: statPayouts, val: 4.2, suffix: 'M', prefix: '₦' },
+                    { el: statActive, val: 2341, suffix: '' }
+                ];
+
+                const observer = new IntersectionObserver((entries) => {
+                    entries.forEach(entry => {
+                        if (entry.isIntersecting) {
+                            targets.forEach((t, idx) => {
+                                const el = t.el;
+                                const target = t.val;
+                                const duration = 1200 + idx * 200;
+                                const start = performance.now();
+
+                                function update(now) {
+                                    const elapsed = now - start;
+                                    const progress = Math.min(elapsed / duration, 1);
+                                    const eased = 1 - Math.pow(1 - progress, 3);
+                                    const current = Math.round(eased * target);
                                     if (t.prefix) {
-                                        el.textContent = t.prefix + target.toFixed(1) + t.suffix;
+                                        el.textContent = t.prefix + current.toFixed(1) + t
+                                        .suffix;
                                     } else {
-                                        el.textContent = target.toLocaleString() + t.suffix;
+                                        el.textContent = current.toLocaleString() + t
+                                        .suffix;
+                                    }
+                                    if (progress < 1) {
+                                        requestAnimationFrame(update);
+                                    } else {
+                                        if (t.prefix) {
+                                            el.textContent = t.prefix + target.toFixed(
+                                                1) + t.suffix;
+                                        } else {
+                                            el.textContent = target.toLocaleString() +
+                                                t.suffix;
+                                        }
                                     }
                                 }
-                            }
-                            requestAnimationFrame(update);
-                        });
-                        observer.disconnect();
-                    }
-                });
-            }, { threshold: 0.3 });
+                                requestAnimationFrame(update);
+                            });
+                            observer.disconnect();
+                        }
+                    });
+                }, { threshold: 0.3 });
 
-            const statsSection = document.querySelector('.stats-section');
-            if (statsSection) observer.observe(statsSection);
-        })();
+                const statsSection = document.querySelector('.stats-section');
+                if (statsSection) observer.observe(statsSection);
+            })();
 
-        // ============================================================
-        // INIT
-        // ============================================================
-        setAuthMode('login');
-        console.log('✅ SwiftDuel index ready – optimized for speed.');
+            // ---- Init UI ----
+            setAuthMode('login');
+            console.log('✅ SwiftDuel ready – referral links fixed!');
+
+        }); // end DOMContentLoaded
     </script>
 
 </body>
